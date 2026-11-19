@@ -112,6 +112,7 @@ def process(obj: dict, out_dir: Path, observation_date: str) -> dict:
     target.write_text(json.dumps(result,indent=2,allow_nan=False)+"\\n",encoding="utf-8")
     with gzip.open(wave_target,"wt",encoding="utf-8",compresslevel=6) as handle:
         json.dump(waveform,handle,separators=(",",":"),allow_nan=False)
+    result["waveform_file"]=wave_target.name
     return {"file":name,"record":target.name,"waveform":wave_target.name,"object_key":key,"size_bytes":obj["size_bytes"],
       "etag":obj["etag"],"samples":result["summary"]["samples"],
       "complete_hours":result["summary"]["complete_hours"],
@@ -139,7 +140,7 @@ def main():
             if not eligible_for_current_engine(name,"narrowband"): continue
         except ValueError: continue
         parts=o["key"].split("/")
-        station=parts[4] if len(parts)>4 else ""
+        station=parts[3] if len(parts)>3 else ""
         tx=re.search(r"([A-Z]{3})_\d{3}A\.mat$",name,re.I)
         tx=tx.group(1).upper() if tx else ""
         if a.station_folder and station.upper()!=a.station_folder.upper(): continue
