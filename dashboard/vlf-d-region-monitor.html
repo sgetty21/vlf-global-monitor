@@ -84,7 +84,7 @@ function Badge({state,big}){
   const k=key(state), c=colorOf(state), mixed=String(state).includes('/');
   const bg = mixed ? `linear-gradient(90deg,${colorOf(state)},${colorOf(String(state).split('/')[1])})` : c;
   return html`<span className=${'inline-flex items-center gap-2 rounded px-2.5 py-1 font-semibold '+(big?'text-lg':'text-xs')} style=${{background:c+'22',border:'1px solid '+c,color:c}}>
-    <i style=${{width:8,height:8,borderRadius:99,background:bg,display:'inline-block'}}></i>State ${state}</span>`;
+    <i style=${{width:8,height:8,borderRadius:99,background:bg,display:'inline-block'}}></i>Human indicator ${state}</span>`;
 }
 
 function Kpi({label,value,sub,children}){
@@ -151,18 +151,14 @@ function Scatter({batch}){
   const off={Kelud:[8,-8],Virginia:[8,4],Solar:[8,4],SSW:[8,-8],Pam:[-6,16],Patricia:[-6,-10],Sandy:[-8,17],Igor:[-8,-10],Quiet:[8,-8]};
   const pk=batch.peak;
   return html`<svg viewBox=${`0 0 ${W} ${H}`} className="w-full h-auto">
-    <rect x=${m.l} y=${m.t} width=${x(0.06)-m.l} height=${y(0.3)-m.t} fill="#f43f5e" opacity="0.07"/>
-    <rect x=${x(0.06)} y=${y(0.3)} width=${W-m.r-x(0.06)} height=${m.t+ih-y(0.3)} fill="#f59e0b" opacity="0.06"/>
-    <text x=${m.l+8} y=${m.t+16} fontSize="10" fill="#f43f5e" opacity="0.8">impulsive forcing zone</text>
-    <text x=${W-m.r-8} y=${y(0.3)+ih*0.0+(m.t+ih-y(0.3))-8} textAnchor="end" fontSize="10" fill="#f59e0b" opacity="0.8">organized wave zone</text>
     ${[0,.1,.2,.3,.4,.5,.6].map(v=>html`<g key=${'y'+v}><line x1=${m.l} x2=${W-m.r} y1=${y(v)} y2=${y(v)} stroke="#1d2836"/><text x=${m.l-6} y=${y(v)+4} textAnchor="end" fontSize="10" fill="#7b8da3">${v.toFixed(1)}</text></g>`)}
     ${[0,.02,.04,.06,.08,.1,.12,.14].map(v=>html`<g key=${'x'+v}><line y1=${m.t} y2=${m.t+ih} x1=${x(v)} x2=${x(v)} stroke="#1d2836"/><text x=${x(v)} y=${H-26} textAnchor="middle" fontSize="10" fill="#7b8da3">${v.toFixed(2)}</text></g>`)}
     <text x=${m.l+iw/2} y=${H-8} textAnchor="middle" fontSize="11" fill="#d9e2ee">Coherence T</text>
     <text transform=${`translate(12 ${m.t+ih/2}) rotate(-90)`} textAnchor="middle" fontSize="11" fill="#d9e2ee">Energy A</text>
     ${BENCH.map(b=>{const o=off[b.s]||[8,4];return html`<g key=${b.s}>
-      <circle cx=${x(b.T)} cy=${y(b.A)} r="5" fill=${colorOf(b.state)} opacity="0.55"/>
+      <circle cx=${x(b.T)} cy=${y(b.A)} r="5" fill="#7b8da3" opacity="0.7"/>
       <text x=${x(b.T)+o[0]} y=${y(b.A)+o[1]} fontSize="10" fill="#9fb0c4" textAnchor=${o[0]<0?'end':'start'}>${b.s}</text></g>`;})}
-    ${batch.hours.map((r,i)=>html`<circle key=${i} cx=${x(r.T)} cy=${y(r.A)} r="4" fill="none" stroke="#fff" strokeWidth="1.4" opacity="0.8"><title>${`H${String(r.hour).padStart(2,'0')} · T ${r.T.toFixed(3)} · A ${r.A.toFixed(3)} · State ${r.state}`}</title></circle>`)}
+    ${batch.hours.map((r,i)=>html`<circle key=${i} cx=${x(r.T)} cy=${y(r.A)} r="4" fill="none" stroke="#fff" strokeWidth="1.4" opacity="0.8"><title>${`H${String(r.hour).padStart(2,'0')} · T ${r.T.toFixed(3)} · A ${r.A.toFixed(3)}`}</title></circle>`)}
     <g>
       <circle cx=${x(pk.T)} cy=${y(pk.A)} r="11" fill="none" stroke=${COL.X} strokeWidth="2.5"/>
       <circle cx=${x(pk.T)} cy=${y(pk.A)} r="4.5" fill="#fff"/>
@@ -193,7 +189,7 @@ function LoadModal({onClose,onLoad,onReset}){
       <input type="file" accept=".json,application/json" onChange=${onFile} className="block w-full text-sm mb-4 file:mr-3 file:rounded file:border-0 file:bg-sky-500/20 file:text-sky-300 file:px-3 file:py-2"/>
       <label className="block text-sm mb-1 text-[color:var(--mute)]">Or paste raw JSON</label>
       <textarea value=${text} onChange=${e=>{setText(e.target.value);setErr('');}} rows="8" spellCheck="false"
-        placeholder=${'{"file":"event.json","hourly":[{"hour":0,"tau":40,"A":0.05,"T":0.01,"state":"D"}, …]}'}
+        placeholder=${'{"file":"event.json","hourly":[{"hour":0,"tau":40,"A":0.05,"T":0.01,"human_indicator":null}, …]}'}
         className="num w-full rounded p-2 text-xs bg-[#080c12] border border-[color:var(--line)]"></textarea>
       <p className="text-xs text-[color:var(--mute)] mt-2">Accepted: an array, or an object with <span className="num">hourly</span> / <span className="num">hours</span> / <span className="num">data</span>. Fields per hour: <span className="num">hour, tau, A, T</span>; optional <span className="num">human_indicator</span> is a human-entered annotation. No indicator is inferred from the metrics. An optional <span className="num">peak</span> object overrides the highest-τ hour.</p>
       ${err && html`<div className="mt-3 text-sm rounded p-2" style=${{background:'#f43f5e22',border:'1px solid #f43f5e',color:'#fda4af'}}>${err}</div>`}
@@ -214,7 +210,7 @@ function App(){
   <div className="max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
     <header className="flex items-start justify-between gap-3 mb-4">
       <div className="min-w-0">
-        <h1 className="text-xl sm:text-3xl font-extrabold leading-tight">VLF D-Region Spectral State Monitor</h1>
+        <h1 className="text-xl sm:text-3xl font-extrabold leading-tight">VLF D-Region Spectral Measurements</h1>
         <p className="text-xs sm:text-sm text-[color:var(--mute)] mt-1">Hourly persistence, energy and coherence; human indicators are annotations, not automatic classifications.</p>
       </div>
       <button onClick=${()=>setOpen(true)} className="shrink-0 rounded px-3 sm:px-4 py-2 text-sm font-semibold bg-sky-500 text-slate-950">Load new batch</button>
@@ -239,18 +235,18 @@ function App(){
 
     <section className="grid lg:grid-cols-3 gap-3 sm:gap-4 mb-3 sm:mb-4">
       <div className="panel p-3 sm:p-4 lg:col-span-2">
-        <h2 className="font-semibold">Regime separation</h2>
-        <p className="text-xs text-[color:var(--mute)] mb-2">Coherence T against energy A. Filled dots are the nine reference events; white rings are this batch’s hours.</p>
+        <h2 className="font-semibold">Measurement space</h2>
+        <p className="text-xs text-[color:var(--mute)] mb-2">Coherence T against energy A. Neutral dots are historical reference measurements; white rings are this batch’s hourly measurements. This plot does not assign regimes or classes.</p>
         <${Scatter} batch=${b}/>
       </div>
       <div className="panel p-3 sm:p-4">
         <h2 className="font-semibold mb-2">Reference benchmarks</h2>
         <div className="overflow-x-auto"><table className="w-full text-xs num">
-          <thead><tr className="text-[color:var(--mute)] text-left"><th className="py-1 pr-2 font-normal">Event</th><th className="pr-2 font-normal">τ</th><th className="pr-2 font-normal">A</th><th className="pr-2 font-normal">T</th><th className="font-normal">St</th></tr></thead>
+          <thead><tr className="text-[color:var(--mute)] text-left"><th className="py-1 pr-2 font-normal">Event</th><th className="pr-2 font-normal">τ</th><th className="pr-2 font-normal">A</th><th className="pr-2 font-normal">T</th><th className="font-normal">Legacy label*</th></tr></thead>
           <tbody>${BENCH.map(r=>html`<tr key=${r.s} className="border-t border-[color:var(--line)]">
             <td className="py-1.5 pr-2 font-sans whitespace-nowrap">${r.n}</td><td className="pr-2">${r.tau}</td><td className="pr-2">${r.A.toFixed(2)}</td><td className="pr-2">${r.T.toFixed(3)}</td>
-            <td style=${{color:colorOf(r.state)}} className="font-semibold whitespace-nowrap">${r.state}</td></tr>`)}</tbody></table></div>
-        <p className="text-xs text-[color:var(--mute)] mt-3">Legacy reference labels are retained as historical annotations; their interpretation and provenance require human review. This dashboard does not infer A/B/C/D from A, T or τ.</p>
+            <td style=${{color:"#9fb0c4"}} className="font-semibold whitespace-nowrap">${r.state}</td></tr>`)}</tbody></table></div>
+        <p className="text-xs text-[color:var(--mute)] mt-3">*Historical labels retained for context only. Their provenance and interpretation have not been independently verified here. They are not outputs of this monitor. Any current A/B/C/D indicator must be entered separately by a human reviewer; no label is inferred from A, T or τ.</p>
       </div>
     </section>
   </div>
