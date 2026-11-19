@@ -132,7 +132,7 @@ def process(obj: dict, out_dir: Path, observation_date: str) -> dict:
     out_dir.mkdir(parents=True,exist_ok=True)
     target=out_dir/(name+".json")
     wave_target=out_dir/(name+".waveform.json.gz")
-    target.write_text(json.dumps(result,indent=2,allow_nan=False)+"\\n",encoding="utf-8")
+    target.write_text(json.dumps(result,indent=2,allow_nan=False)+"\n",encoding="utf-8")
     with gzip.open(wave_target,"wt",encoding="utf-8",compresslevel=6) as handle:
         json.dump(waveform,handle,separators=(",",":"),allow_nan=False)
     result["waveform_file"]=wave_target.name
