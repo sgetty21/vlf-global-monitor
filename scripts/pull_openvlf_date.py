@@ -5,7 +5,7 @@ Read-only against CRAAM. Downloads are temporary; only JSON measurements and
 an inventory are emitted. Each source object is handled independently.
 """
 from __future__ import annotations
-import argparse, hashlib, json, re, sys, tempfile, urllib.parse, urllib.request
+import argparse, gzip, hashlib, json, re, sys, tempfile, urllib.parse, urllib.request
 import xml.etree.ElementTree as ET
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -101,15 +101,18 @@ def process(obj: dict, out_dir: Path, observation_date: str) -> dict:
         yy,mm,dd,hh,mi,ss=map(int,stamp.groups())
         start=datetime(2000+yy,mm,dd,hh,mi,ss,tzinfo=timezone.utc)
         result["source"]["recording_start_utc"]=start.isoformat().replace("+00:00","Z")
-    result["waveform"]={
+    waveform={
       "sample_rate_hz":1.0,"sample_count":int(signal.size),
       "raw_amplitude":[float(x) for x in signal],
       "filtered_normalized":[float(x) for x in filtered]
     }
     out_dir.mkdir(parents=True,exist_ok=True)
     target=out_dir/(name+".json")
-    target.write_text(json.dumps(result,indent=2,allow_nan=False)+"\n",encoding="utf-8")
-    return {"file":name,"record":target.name,"object_key":key,"size_bytes":obj["size_bytes"],
+    wave_target=out_dir/(name+".waveform.json.gz")
+    target.write_text(json.dumps(result,indent=2,allow_nan=False)+"\\n",encoding="utf-8")
+    with gzip.open(wave_target,"wt",encoding="utf-8",compresslevel=6) as handle:
+        json.dump(waveform,handle,separators=(",",":"),allow_nan=False)
+    return {"file":name,"record":target.name,"waveform":wave_target.name,"object_key":key,"size_bytes":obj["size_bytes"],
       "etag":obj["etag"],"samples":result["summary"]["samples"],
       "complete_hours":result["summary"]["complete_hours"],
       "A":result["summary"]["A"],"T":result["summary"]["T"],"tau":result["summary"]["tau"]}
