@@ -1,0 +1,278 @@
+{
+  "file": "FE151022000500NAA_009A.mat",
+  "summary": {
+    "samples": 85800,
+    "sample_rate_hz": 1.0,
+    "duration_seconds": 85800,
+    "complete_hours": 23,
+    "trailing_partial_hour_samples": 3000,
+    "A": 0.0137,
+    "T": 0.0698,
+    "tau": 1037,
+    "filter": {
+      "type": "Butterworth bandpass",
+      "order": 5,
+      "low_hz": 0.001,
+      "high_hz": 0.1,
+      "zero_phase": true
+    },
+    "normalization": "24-hour median: (x - median(x)) / median(x)"
+  },
+  "hourly": [
+    {
+      "hour": 0,
+      "tau": 127,
+      "A": 0.0199,
+      "T": 0.1288
+    },
+    {
+      "hour": 1,
+      "tau": 62,
+      "A": 0.0128,
+      "T": 0.0797
+    },
+    {
+      "hour": 2,
+      "tau": 36,
+      "A": 0.0126,
+      "T": 0.1112
+    },
+    {
+      "hour": 3,
+      "tau": 48,
+      "A": 0.013,
+      "T": 0.1256
+    },
+    {
+      "hour": 4,
+      "tau": 46,
+      "A": 0.0133,
+      "T": 0.1075
+    },
+    {
+      "hour": 5,
+      "tau": 35,
+      "A": 0.0131,
+      "T": 0.062
+    },
+    {
+      "hour": 6,
+      "tau": 39,
+      "A": 0.0237,
+      "T": 0.0845
+    },
+    {
+      "hour": 7,
+      "tau": 49,
+      "A": 0.0135,
+      "T": 0.0771
+    },
+    {
+      "hour": 8,
+      "tau": 76,
+      "A": 0.0105,
+      "T": 0.1282
+    },
+    {
+      "hour": 9,
+      "tau": 53,
+      "A": 0.011,
+      "T": 0.1162
+    },
+    {
+      "hour": 10,
+      "tau": 51,
+      "A": 0.012,
+      "T": 0.0777
+    },
+    {
+      "hour": 11,
+      "tau": 59,
+      "A": 0.0159,
+      "T": 0.0461
+    },
+    {
+      "hour": 12,
+      "tau": 38,
+      "A": 0.0129,
+      "T": 0.0507
+    },
+    {
+      "hour": 13,
+      "tau": 53,
+      "A": 0.0118,
+      "T": 0.1094
+    },
+    {
+      "hour": 14,
+      "tau": 72,
+      "A": 0.0108,
+      "T": 0.0878
+    },
+    {
+      "hour": 15,
+      "tau": 53,
+      "A": 0.0115,
+      "T": 0.1358
+    },
+    {
+      "hour": 16,
+      "tau": 38,
+      "A": 0.0122,
+      "T": 0.0471
+    },
+    {
+      "hour": 17,
+      "tau": 46,
+      "A": 0.0139,
+      "T": 0.0616
+    },
+    {
+      "hour": 18,
+      "tau": 35,
+      "A": 0.0123,
+      "T": 0.0841
+    },
+    {
+      "hour": 19,
+      "tau": 57,
+      "A": 0.0128,
+      "T": 0.0585
+    },
+    {
+      "hour": 20,
+      "tau": 61,
+      "A": 0.0125,
+      "T": 0.0752
+    },
+    {
+      "hour": 21,
+      "tau": 55,
+      "A": 0.0133,
+      "T": 0.0778
+    },
+    {
+      "hour": 22,
+      "tau": 49,
+      "A": 0.0123,
+      "T": 0.045
+    }
+  ],
+  "peak": {
+    "hour": 0,
+    "tau": 127,
+    "A": 0.0199,
+    "T": 0.1288
+  },
+  "interpretation_policy": "No A/B/C/D state is assigned automatically. Human annotations are separate.",
+  "source": {
+    "provider": "CRAAM Open VLF public S3 bucket",
+    "bucket": "craam-files-bucket",
+    "region": "sa-east-1",
+    "object_key": "2015/10/22/narrowband/FE/FE151022000500NAA_009A.mat",
+    "object_etag": "c0f209d02607d76f120bcad9ccea67cc",
+    "object_size_bytes": 352232,
+    "last_modified_utc": "2023-09-16T21:38:57.000Z",
+    "downloaded_sha256": "4b94d3b077b6d766bc86189855a33d82c17bd60d3ca9b937e118da4a2930f913",
+    "observation_date_utc": "2015-10-22",
+    "archive_station_folder": "FE",
+    "transmitter": "NAA",
+    "archive_type": {
+      "code": "A",
+      "band": "narrowband",
+      "measurement": "amplitude"
+    },
+    "sample_rate_hz": 1.0,
+    "mat_metadata": {
+      "VERSION": 2006.1101,
+      "station_name": [
+        69,
+        65,
+        67,
+        70
+      ],
+      "station_description": [],
+      "antenna_bearings": [],
+      "antenna_description": [],
+      "computer_sn": [],
+      "gps_sn": [],
+      "hardware_description": [],
+      "adc_type": [
+        78,
+        73,
+        32,
+        80,
+        67,
+        73,
+        95,
+        54,
+        48,
+        51,
+        52,
+        69
+      ],
+      "adc_sn": [],
+      "adc_channel_number": 1,
+      "Fs": 1,
+      "is_broadband": 0,
+      "call_sign": [
+        78,
+        65,
+        65
+      ],
+      "Fc": 24000,
+      "is_msk": 1,
+      "cal_factor": 1.0,
+      "is_amp": 1,
+      "latitude": [
+        54,
+        50,
+        44,
+        48,
+        52,
+        46,
+        57,
+        53,
+        57,
+        50,
+        44,
+        83
+      ],
+      "longitude": [
+        48,
+        53,
+        56,
+        44,
+        50,
+        51,
+        46,
+        54,
+        56,
+        54,
+        55,
+        44,
+        87
+      ],
+      "altitude": [
+        32,
+        48,
+        48,
+        48,
+        54,
+        54,
+        46,
+        57
+      ],
+      "gps_quality": [
+        49,
+        48
+      ],
+      "start_year": 2015,
+      "start_month": 10,
+      "start_day": 22,
+      "start_hour": 0,
+      "start_minute": 5,
+      "start_second": 0
+    }
+  }
+}\n

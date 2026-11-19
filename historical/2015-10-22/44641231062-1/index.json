@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "source": "CRAAM Open VLF public S3 bucket",
+  "bucket": "craam-files-bucket",
+  "region": "sa-east-1",
+  "date_utc": "2015-10-22",
+  "prefix": "2015/10/22/narrowband/",
+  "queried_at_utc": "2026-11-19T23:52:44.567959+00:00",
+  "objects_discovered": 24,
+  "eligible_type_a_objects": 2,
+  "processed_count": 2,
+  "failed_count": 0,
+  "filters": {
+    "station_folder": "FE",
+    "transmitter": "NAA"
+  },
+  "records": [
+    {
+      "file": "FE151022000500NAA_008A.mat",
+      "record": "FE151022000500NAA_008A.mat.json",
+      "waveform": "FE151022000500NAA_008A.mat.waveform.json.gz",
+      "object_key": "2015/10/22/narrowband/FE/FE151022000500NAA_008A.mat",
+      "size_bytes": 352232,
+      "etag": "b85ced04184a54c8641063f7f806e7fe",
+      "samples": 85800,
+      "complete_hours": 23,
+      "A": 0.0248,
+      "T": 0.0512,
+      "tau": 1252
+    },
+    {
+      "file": "FE151022000500NAA_009A.mat",
+      "record": "FE151022000500NAA_009A.mat.json",
+      "waveform": "FE151022000500NAA_009A.mat.waveform.json.gz",
+      "object_key": "2015/10/22/narrowband/FE/FE151022000500NAA_009A.mat",
+      "size_bytes": 352232,
+      "etag": "c0f209d02607d76f120bcad9ccea67cc",
+      "samples": 85800,
+      "complete_hours": 23,
+      "A": 0.0137,
+      "T": 0.0698,
+      "tau": 1037
+    }
+  ],
+  "errors": []
+}
