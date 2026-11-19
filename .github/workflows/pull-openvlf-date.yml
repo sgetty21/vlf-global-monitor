@@ -1,0 +1,97 @@
+name: Pull historical Open VLF date
+
+on:
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "UTC observation date (YYYY-MM-DD)"
+        required: true
+        type: string
+      station_folder:
+        description: "Optional CRAAM station folder code (for example FE)"
+        required: false
+        type: string
+      transmitter:
+        description: "Optional transmitter callsign (for example NAA)"
+        required: false
+        type: string
+      max_files:
+        description: "Maximum eligible type-A files to process (1–20)"
+        required: true
+        default: "10"
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: historical-openvlf-${{ inputs.date }}
+  cancel-in-progress: false
+
+jobs:
+  retrieve-and-process:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install scientific dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Retrieve and process selected UTC date
+        env:
+          OBSERVATION_DATE: ${{ inputs.date }}
+          STATION_FOLDER: ${{ inputs.station_folder }}
+          TRANSMITTER: ${{ inputs.transmitter }}
+          MAX_FILES: ${{ inputs.max_files }}
+        run: |
+          python scripts/pull_openvlf_date.py \
+            --date "$OBSERVATION_DATE" \
+            --station-folder "$STATION_FOLDER" \
+            --transmitter "$TRANSMITTER" \
+            --max-files "$MAX_FILES" \
+            --output-dir /tmp/openvlf-output
+      - name: Upload historical retrieval artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openvlf-${{ inputs.date }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: /tmp/openvlf-output/
+          if-no-files-found: error
+          retention-days: 90
+      - name: Publish immutable historical dataset
+        env:
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          OBSERVATION_DATE: ${{ inputs.date }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin data
+          git checkout -B publish-historical FETCH_HEAD
+          TARGET="historical/$OBSERVATION_DATE/$RUN_ID-$RUN_ATTEMPT"
+          mkdir -p "$TARGET"
+          cp -a /tmp/openvlf-output/. "$TARGET/"
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          root=Path("historical")
+          p=root/"index.json"
+          idx=json.loads(p.read_text()) if p.exists() else {"schema_version":1,"runs":[]}
+          item={"date_utc":os.environ["OBSERVATION_DATE"],"run_id":int(os.environ["RUN_ID"]),"run_attempt":int(os.environ["RUN_ATTEMPT"]),"path":f"{os.environ['OBSERVATION_DATE']}/{os.environ['RUN_ID']}-{os.environ['RUN_ATTEMPT']}/index.json"}
+          key=(item["date_utc"],item["run_id"],item["run_attempt"])
+          old=[x for x in idx["runs"] if (x["date_utc"],x["run_id"],x["run_attempt"])==key]
+          if old and old[0]!=item: raise SystemExit("Historical index immutability conflict")
+          if not old: idx["runs"].append(item)
+          idx["runs"].sort(key=lambda x:(x["date_utc"],x["run_id"],x["run_attempt"]))
+          p.parent.mkdir(parents=True,exist_ok=True)
+          p.write_text(json.dumps(idx,indent=2)+"\n")
+          PY
+          git add "$TARGET" historical/index.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Publish Open VLF historical retrieval $OBSERVATION_DATE run $RUN_ID"
+          git push origin HEAD:data
