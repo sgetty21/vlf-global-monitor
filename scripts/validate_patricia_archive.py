@@ -84,7 +84,7 @@ def main():
         },
         "note": (
             "The earlier cited T=0.0826 remains an unresolved historical discrepancy. "
-            "This run does not change the frozen metric definition or state thresholds."
+            "State labels are not calculated by the metrics exporter; interpretation is reserved for human review."
         ),
         "raw_mat_retained": False,
     }
