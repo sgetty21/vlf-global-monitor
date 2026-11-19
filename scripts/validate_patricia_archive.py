@@ -112,7 +112,7 @@ def main():
             ),
         },
         "note": (
-            "The earlier cited T=0.0826 remains an unresolved historical discrepancy. "
+            "The earlier cited T=0.0826 is reproduced by the 256-sample Welch diagnostic. "
             "State labels are not calculated by the metrics exporter; interpretation is reserved for human review."
         ),
         "raw_mat_retained": False,
