@@ -16,9 +16,9 @@ on:
         required: false
         type: string
       max_files:
-        description: "Maximum eligible type-A files to process (1–200)"
+        description: "Maximum eligible type-A files to process (1–20)"
         required: true
-        default: "50"
+        default: "10"
         type: string
 
 permissions:
