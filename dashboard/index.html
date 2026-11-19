@@ -139,7 +139,7 @@ async function browseHistoricalDate(){
   const idx=await json('historical/index.json');
   const runs=(idx.runs||[]).filter(x=>x.date_utc===date).sort((a,b)=>b.run_id-a.run_id||b.run_attempt-a.run_attempt);
   if(!runs.length){status.textContent='No published retrieval exists for '+date+'. Use the GitHub Actions link above to retrieve it.';return}
-  const run=runs[0],folder='historical/'+run.path.replace(/index\\.json$/,'');
+  const run=runs[0],folder='historical/'+run.path.replace(/index\.json$/,'');
   const day=await json('historical/'+run.path);
   const records=day.records||[];
   status.textContent='Found '+records.length+' processed recording(s) for '+date+'. Select one to inspect its waveform and hourly metrics.';
