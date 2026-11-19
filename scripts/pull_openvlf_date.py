@@ -96,6 +96,16 @@ def process(obj: dict, out_dir: Path, observation_date: str) -> dict:
       "mat_metadata":metadata
     }
     result["interpretation_policy"]="No A/B/C/D state is assigned automatically. Human annotations are separate."
+    stamp=re.match(r"^[A-Z]{2}(\\d{2})(\\d{2})(\\d{2})(\\d{2})(\\d{2})(\\d{2})",name,re.I)
+    if stamp:
+        yy,mm,dd,hh,mi,ss=map(int,stamp.groups())
+        start=datetime(2000+yy,mm,dd,hh,mi,ss,tzinfo=timezone.utc)
+        result["source"]["recording_start_utc"]=start.isoformat().replace("+00:00","Z")
+    result["waveform"]={
+      "sample_rate_hz":1.0,"sample_count":int(signal.size),
+      "raw_amplitude":[float(x) for x in signal],
+      "filtered_normalized":[float(x) for x in filtered]
+    }
     out_dir.mkdir(parents=True,exist_ok=True)
     target=out_dir/(name+".json")
     target.write_text(json.dumps(result,indent=2,allow_nan=False)+"\n",encoding="utf-8")
