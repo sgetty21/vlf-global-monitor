@@ -63,7 +63,16 @@ jobs:
           git fetch origin data
           git checkout -B publish-data FETCH_HEAD
           mkdir -p published/runs
-          cp "/tmp/vlf-publication/published/runs/$RUN_ID-$RUN_ATTEMPT.json" "published/runs/$RUN_ID-$RUN_ATTEMPT.json"
+          NEW_RECORD="/tmp/vlf-publication/published/runs/$RUN_ID-$RUN_ATTEMPT.json"
+          TARGET_RECORD="published/runs/$RUN_ID-$RUN_ATTEMPT.json"
+          if [ -e "$TARGET_RECORD" ]; then
+            if ! cmp -s "$NEW_RECORD" "$TARGET_RECORD"; then
+              echo "Immutable record conflict for $TARGET_RECORD" >&2
+              exit 1
+            fi
+          else
+            cp "$NEW_RECORD" "$TARGET_RECORD"
+          fi
           python - <<'PY'
           import json
           from pathlib import Path
