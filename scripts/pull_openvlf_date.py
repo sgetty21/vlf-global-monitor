@@ -56,6 +56,28 @@ def load_metadata(path: Path) -> dict:
             out[k]=val
     return out
 
+def verify_mat_metadata(metadata: dict, filename: str) -> float:
+    """Require internal MAT evidence for 1 Hz amplitude-only input."""
+    normalized={str(k).lower():v for k,v in metadata.items()}
+    rate_keys=("sample_rate_hz","sampling_rate_hz","sampling_rate","sample_rate","samplingrate","fs")
+    rate=None
+    for key in rate_keys:
+        if key in normalized:
+            try: rate=float(np.asarray(normalized[key]).reshape(-1)[0])
+            except (TypeError,ValueError,IndexError): continue
+            break
+    if rate is None or not np.isfinite(rate):
+        raise ValueError(f"{filename}: MAT metadata does not expose a verifiable sample rate; refusing to assume 1 Hz")
+    if abs(rate-1.0)>1e-9:
+        raise ValueError(f"{filename}: MAT sample rate is {rate} Hz; frozen engine requires exactly 1 Hz")
+    for key in ("is_amp","is_amplitude","amplitude"):
+        if key in normalized and str(normalized[key]).lower() not in ("1","true","yes"):
+            raise ValueError(f"{filename}: MAT metadata {key} does not confirm amplitude data")
+    for key in ("is_broadband","broadband"):
+        if key in normalized and str(normalized[key]).lower() in ("1","true","yes"):
+            raise ValueError(f"{filename}: MAT metadata identifies broadband data")
+    return rate
+
 def process(obj: dict, out_dir: Path, observation_date: str) -> dict:
     key=obj["key"]; name=Path(key).name
     if not eligible_for_current_engine(name,"narrowband"):
@@ -79,6 +101,7 @@ def process(obj: dict, out_dir: Path, observation_date: str) -> dict:
         mat_path.write_bytes(payload)
         signal=load_amplitude_array(mat_path)
         metadata=load_metadata(mat_path)
+        sample_rate=verify_mat_metadata(metadata,name)
         filtered=normalize_and_filter(signal)
         result=build_export(signal,filtered,name)
     # Type A is the archive's 1 Hz narrowband-amplitude product. Reject files
@@ -92,7 +115,7 @@ def process(obj: dict, out_dir: Path, observation_date: str) -> dict:
       "last_modified_utc":obj["last_modified"],"downloaded_sha256":hashlib.sha256(payload).hexdigest(),
       "observation_date_utc":observation_date,"archive_station_folder":key.split("/")[4] if len(key.split("/"))>4 else None,
       "transmitter":re.search(r"([A-Z]{3})_\d{3}A\.mat$",name,re.I).group(1).upper() if re.search(r"([A-Z]{3})_\d{3}A\.mat$",name,re.I) else None,
-      "archive_type":variant,"sample_rate_hz":1.0,
+      "archive_type":variant,"sample_rate_hz":sample_rate,
       "mat_metadata":metadata
     }
     result["interpretation_policy"]="No A/B/C/D state is assigned automatically. Human annotations are separate."
