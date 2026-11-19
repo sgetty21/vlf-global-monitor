@@ -40,7 +40,7 @@ jobs:
           path: data/patricia-validation/
           if-no-files-found: error
           retention-days: 30
-      - name: Prepare durable publication
+      - name: Prepare immutable publication
         env:
           RUN_ID: ${{ github.run_id }}
           RUN_ATTEMPT: ${{ github.run_attempt }}
@@ -50,12 +50,11 @@ jobs:
           python scripts/publish_validation_record.py \
             --input data/patricia-validation/patricia_2015_naa_eacf_validation.json \
             --report data/patricia-validation/validation_report.json \
-            --published-dir published \
+            --published-dir /tmp/vlf-publication/published \
             --run-id "$RUN_ID" --run-attempt "$RUN_ATTEMPT" \
             --run-url "$RUN_URL" --created-at "$CREATED_AT"
-      - name: Publish append-only record to data branch
+      - name: Append publication to data branch
         env:
-          GH_TOKEN: ${{ github.token }}
           RUN_ID: ${{ github.run_id }}
           RUN_ATTEMPT: ${{ github.run_attempt }}
         run: |
@@ -64,15 +63,20 @@ jobs:
           git fetch origin data
           git checkout -B publish-data FETCH_HEAD
           mkdir -p published/runs
-          cp -a published/. published/
-          # Restore generated files from the validated workspace without touching annotations.
-          git checkout main -- scripts/publish_validation_record.py
-          python scripts/publish_validation_record.py \
-            --input "$GITHUB_WORKSPACE/data/patricia-validation/patricia_2015_naa_eacf_validation.json" \
-            --report "$GITHUB_WORKSPACE/data/patricia-validation/validation_report.json" \
-            --published-dir published \
-            --run-id "$RUN_ID" --run-attempt "$RUN_ATTEMPT" \
-            --run-url "$RUN_URL" --created-at "$CREATED_AT"
+          cp "/tmp/vlf-publication/published/runs/$RUN_ID-$RUN_ATTEMPT.json" "published/runs/$RUN_ID-$RUN_ATTEMPT.json"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path("published/index.json")
+          index=json.loads(p.read_text()) if p.exists() else {"schema_version":1,"runs":[]}
+          record=f"runs/{__import__('os').environ['RUN_ID']}-{__import__('os').environ['RUN_ATTEMPT']}.json"
+          item={"run_id":int(__import__('os').environ["RUN_ID"]),"run_attempt":int(__import__('os').environ["RUN_ATTEMPT"]),"record":record}
+          old=[x for x in index["runs"] if (x.get("run_id"),x.get("run_attempt"))==(item["run_id"],item["run_attempt"])]
+          if old and old[0]!=item: raise SystemExit("Index entry conflict; refusing to overwrite.")
+          if not old: index["runs"].append(item)
+          index["runs"].sort(key=lambda x:(x["run_id"],x["run_attempt"]))
+          p.write_text(json.dumps(index,indent=2)+"\n")
+          PY
           git add published/index.json "published/runs/$RUN_ID-$RUN_ATTEMPT.json"
           git diff --cached --quiet && exit 0
           git commit -m "Publish Patricia validation run $RUN_ID attempt $RUN_ATTEMPT"
