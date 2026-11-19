@@ -34,7 +34,7 @@ Historical benchmark labels displayed in the dashboard are retained for context 
 
 The project includes a reference validation for the 2015-10-22 NAA–EACF narrowband-amplitude archive recording. The recorded full-file metrics are A = 0.0248, T = 0.0512 and τ = 1256.
 
-An earlier analysis produced different hourly results, and a historical T value of 0.0826 remains discrepant. This discrepancy is unresolved. The reference record is preserved for investigation; the processing equations and thresholds have not been changed to force agreement.
+A Welch sensitivity check reproduced the historical full-record T = 0.0826 when using the earlier project setting of nperseg = 256. The current setting (up to nperseg = 4096) produces T = 0.0512. This explains the historical full-record T difference as a Welch segment-length configuration difference. The current 4096-based result remains the canonical pipeline output; the 256-based result is retained as a diagnostic comparison, not substituted into the engine. The earlier hourly-result discrepancy is a separate issue and remains under investigation. No processing equations or thresholds were changed to force agreement.
 
 The raw MATLAB recording is not stored in this repository. The validation JSON and report are derived artifacts; consult their metadata and the workflow logs when reproducing the validation.
 
