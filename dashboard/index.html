@@ -1,13 +1,105 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VLF Global Monitor</title><style>
-:root{color-scheme:dark;background:#080d14;color:#e3edf7;font:16px system-ui}body{margin:0}main{max-width:1100px;margin:auto;padding:28px 18px}h1{font-size:clamp(1.6rem,4vw,2.5rem);margin:0}.muted{color:#91a4b9}.panel{background:#111b27;border:1px solid #29394b;border-radius:10px;padding:16px;margin:16px 0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.metric{font-size:1.7rem;font-weight:700;font-variant-numeric:tabular-nums}.tag{display:inline-block;border:1px solid #60758b;border-radius:5px;padding:3px 8px}table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}th,td{text-align:right;padding:8px;border-bottom:1px solid #29394b}th:first-child,td:first-child{text-align:left}a{color:#83caff}.error{color:#ff9b9b}
-</style></head><body><main><header><h1>VLF Global Monitor</h1><p class="muted">D-region spectral measurements · CRAAM type-A narrowband amplitude. A/B/C/D are human annotations only; no state is inferred from measurements.</p></header>
-<section class="panel"><div id="status">Loading published validation records…</div><div id="runs" class="muted"></div></section><div id="content"></div><footer class="muted">Exploratory monitoring only. Measurements do not establish causation or provide forecasts.</footer></main>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b1220">
+<title>VLF Global Monitor</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1220;--panel:#111c2c;--panel2:#0e1928;--line:#26364b;--ink:#e7eef8;--muted:#9aabc0;--cyan:#55c5e8;--amber:#f4bd61;--violet:#b7a1f7;--green:#73d6a0;--red:#ff8e8e;font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -20%,#1b3450 0,transparent 55%),var(--bg);color:var(--ink)}a{color:var(--cyan);text-decoration:none}a:hover{text-decoration:underline}button,select{font:inherit;color:inherit;background:#17263a;border:1px solid var(--line);border-radius:8px;padding:9px 12px}button{cursor:pointer}button:hover{border-color:var(--cyan)}main{max-width:1180px;margin:auto;padding:28px 20px 56px}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap}.eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--cyan);font-weight:700}h1{font-size:clamp(28px,5vw,42px);line-height:1.1;margin:7px 0}h2{font-size:17px;margin:0 0 14px}.lede{color:var(--muted);max-width:760px;margin:8px 0 0}.status{margin:22px 0 14px;padding:12px 15px;border:1px solid var(--line);border-radius:10px;background:#101b2a;color:var(--muted)}.status.error{border-color:#75434b;color:#ffc0c0}.status.ok{border-color:#315c50;color:#a5eac5}.toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.panel{background:linear-gradient(145deg,#142135,#101a29);border:1px solid var(--line);border-radius:13px;padding:18px;margin-top:15px;min-width:0}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:15px}.metric{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:15px;min-width:0}.metric .name{font-size:12px;color:var(--muted)}.metric .value{font-size:clamp(22px,4vw,31px);font-weight:700;font-variant-numeric:tabular-nums;margin-top:5px;overflow-wrap:anywhere}.metric .hint{font-size:11px;color:var(--muted);margin-top:3px}.two{display:grid;grid-template-columns:1.4fr 1fr;gap:15px}.muted{color:var(--muted)}.small{font-size:12px}.tag{display:inline-flex;align-items:center;gap:7px;border:1px solid #3d526c;border-radius:99px;padding:4px 10px;font-size:12px;color:#d8e5f4}.tag:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--green)}.unassigned:before{background:#7e8da1}.annotation{border-left:3px solid var(--violet);padding:3px 0 3px 13px}.annotation h3{margin:0 0 6px;font-size:15px}.meta{display:grid;grid-template-columns:150px minmax(0,1fr);gap:7px 14px;font-size:13px}.meta dt{color:var(--muted)}.meta dd{margin:0;overflow-wrap:anywhere}.chart-wrap{width:100%;overflow:hidden}.chart-wrap svg{width:100%;height:auto;display:block}.legend{display:flex;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin:0 0 10px}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}.table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:13px}th,td{padding:9px 11px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em}th:first-child,td:first-child{text-align:left}tbody tr:hover{background:#1b2a3d}.foot{color:var(--muted);font-size:12px;margin-top:22px;max-width:900px}.warning{border-color:#69532e;background:#241e14;color:#f7dca6}.empty{padding:24px;text-align:center;color:var(--muted)}code{color:#c4d5e9;overflow-wrap:anywhere}
+@media(max-width:760px){main{padding:20px 13px 40px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.two{grid-template-columns:1fr}.panel{padding:14px}.meta{grid-template-columns:115px minmax(0,1fr)}}
+@media(max-width:390px){.metrics{gap:8px}.metric{padding:11px}.metric .value{font-size:23px}}
+</style>
+</head>
+<body>
+<main>
+<header class="top">
+ <div><div class="eyebrow">Open scientific monitoring · CRAAM archive</div><h1>VLF Global Monitor</h1><p class="lede">D-region propagation measurements from checksum-verified, 1 Hz narrowband-amplitude recordings. This dashboard reports measurements and provenance; it does not infer physical causes or assign A/B/C/D states.</p></div>
+ <div class="toolbar"><label class="small muted" for="runSelect">Published validation</label><select id="runSelect" aria-label="Choose a published validation"><option>Loading…</option></select><button id="refresh" type="button">Refresh data</button></div>
+</header>
+<div id="status" class="status" role="status" aria-live="polite">Connecting to the published data branch…</div>
+<div id="app"><div class="empty">Waiting for published measurements.</div></div>
+<p class="foot">Exploratory monitoring only. A, T and τ are measurement outputs, not diagnoses or forecasts. Archive type A means narrowband amplitude; archive type codes do not represent separate propagation paths. Each transmitter–receiver path must be evaluated independently.</p>
+</main>
 <script>
-const q=new URLSearchParams(location.search),base=(q.get('data')||'https://raw.githubusercontent.com/sgetty21/vlf-global-monitor/data').replace(/\/$/,'');
-const $=x=>document.getElementById(x),esc=x=>String(x??'—').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-async function get(p){let r=await fetch(base+'/'+p,{cache:'no-store'});if(!r.ok)throw Error(p+' HTTP '+r.status);return r.json()}
-const good=a=>a&&['A','B','C','D'].includes(a.indicator)&&String(a.reviewer||'').trim()&&String(a.reviewed_at_utc||'').trim()&&String(a.provenance||'').trim();
-function show(r,anns){let s=r.summary||{},rows=r.hourly||[],file=(r.source?.object_key||'').split('/').pop(),a=(anns.annotations||[]).find(x=>x.recording_file===file&&good(x));
-$('content').innerHTML='<section class="panel"><div class="muted">Recording</div><h2>'+esc(file)+'</h2><p class="muted">Published '+esc(r.published_at_utc)+' · <a href="'+esc(r.workflow_url)+'">Validation run</a> · run '+esc(r.run_id)+' / attempt '+esc(r.run_attempt)+'</p><div class="grid">'+[['A · RMS energy',s.A],['T · spectral coherence',s.T],['τ · persistence',s.tau],['Complete hours',s.complete_hours]].map(x=>'<div class="panel"><div class="muted">'+x[0]+'</div><div class="metric">'+esc(x[1])+'</div></div>').join('')+'</div><p>Human indicator: '+(a?'<span class="tag">'+esc(a.indicator)+'</span>':'<span class="tag">Unassigned</span>')+'</p>'+(a?'<p>Reviewer: '+esc(a.reviewer)+' · '+esc(a.reviewed_at_utc)+'</p><p>'+esc(a.notes||'')+'</p><p class="muted">Provenance: '+esc(a.provenance)+'</p>':'<p class="muted">No complete valid human annotation. No indicator is inferred.</p>')+'</section><section class="panel"><h2>Hourly measurements</h2><div style="overflow-x:auto"><table><thead><tr><th>Hour UTC</th><th>A</th><th>T</th><th>τ</th></tr></thead><tbody>'+rows.map(x=>'<tr><td>'+String(x.hour).padStart(2,'0')+'</td><td>'+esc(x.A)+'</td><td>'+esc(x.T)+'</td><td>'+esc(x.tau)+'</td></tr>').join('')+'</tbody></table></div></section><section class="panel"><h2>Validation provenance</h2><p class="muted">'+esc(r.source?.object_key)+' · CRAAM ETag '+esc(r.source?.object_etag)+'</p><p class="muted">Raw MAT file is not published. Validation report is retained with the run record.</p></section>'}
-(async()=>{try{let i=await get('published/index.json');if(!Array.isArray(i.runs)||!i.runs.length){$('status').textContent='No successful validation records published yet.';return}let list=[...i.runs].sort((a,b)=>b.run_id-a.run_id||b.run_attempt-a.run_attempt),latest=list[0];$('runs').innerHTML='Published runs: '+list.map(x=>'<a href="#" data-path="'+esc(x.record)+'">'+esc(x.run_id)+' / '+esc(x.run_attempt)+'</a>').join(' · ');let [r,a]=await Promise.all([get('published/'+latest.record),get('published/annotations.json').catch(()=>({annotations:[]}))]);$('status').textContent='Latest successful published validation';show(r,a);$('runs').querySelectorAll('a').forEach(x=>x.onclick=async e=>{e.preventDefault();try{show(await get('published/'+x.dataset.path),a)}catch(z){$('status').textContent='Unable to load run: '+z.message}})}catch(e){$('status').innerHTML='<span class="error">Unable to load published data: '+esc(e.message)+'</span>'}})();
-</script></body></html>
+'use strict';
+const params=new URLSearchParams(location.search);
+const base=(params.get('data')||'https://raw.githubusercontent.com/sgetty21/vlf-global-monitor/data').replace(/\/$/,'');
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??'—').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=(v,n=4)=>Number.isFinite(Number(v))?Number(v).toFixed(n):'—';
+let indexData=null,annotations={annotations:[]},records=new Map();
+async function json(path){const r=await fetch(base+'/'+path,{cache:'no-store'});if(!r.ok)throw Error(path+' returned HTTP '+r.status);return r.json()}
+function setStatus(message,kind=''){ $('status').className='status '+kind;$('status').textContent=message }
+function validAnnotation(a){return a&&['A','B','C','D'].includes(a.indicator)&&String(a.reviewer||'').trim()&&String(a.reviewed_at_utc||'').trim()&&String(a.provenance||'').trim()}
+function annotationFor(record){const file=(record.source?.object_key||'').split('/').pop();return (annotations.annotations||[]).find(a=>a.recording_file===file&&validAnnotation(a))}
+function niceDate(v){if(!v)return '—';const d=new Date(v);return Number.isNaN(d.getTime())?String(v):d.toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short',timeZone:'UTC'})+' UTC'}
+function drawChart(rows){
+ if(!rows.length)return '<div class="empty">No complete hourly measurements in this record.</div>';
+ const W=850,H=270,L=52,R=48,T=20,B=34,iw=W-L-R,ih=H-T-B;
+ const maxTau=Math.max(10,...rows.map(r=>Number(r.tau)||0))*1.12;
+ const maxT=Math.max(.01,...rows.map(r=>Number(r.T)||0))*1.12;
+ const x=i=>L+(Number(i)/23)*iw, yTau=v=>T+ih-(Number(v)/maxTau)*ih, yT=v=>T+ih-(Number(v)/maxT)*ih;
+ const line=(key,fn)=>rows.map((r,i)=>(i?'L':'M')+x(r.hour)+','+fn(r[key])).join(' ');
+ let svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Hourly tau and T measurements plotted across UTC hours">';
+ for(let i=0;i<=4;i++){let yy=T+ih*i/4;svg+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+yy+'" y2="'+yy+'" stroke="#26364b"/><text x="'+(L-9)+'" y="'+(yy+4)+'" text-anchor="end" fill="#55c5e8" font-size="10">'+fmt(maxTau*(1-i/4),0)+'</text><text x="'+(W-R+8)+'" y="'+(yy+4)+'" fill="#f4bd61" font-size="10">'+fmt(maxT*(1-i/4),3)+'</text>'}
+ for(let h=0;h<24;h+=3){svg+='<text x="'+x(h)+'" y="'+(H-9)+'" text-anchor="middle" fill="#9aabc0" font-size="10">'+String(h).padStart(2,'0')+'</text>'}
+ svg+='<path d="'+line('tau',yTau)+'" fill="none" stroke="#55c5e8" stroke-width="2.5" stroke-linejoin="round"/><path d="'+line('T',yT)+'" fill="none" stroke="#f4bd61" stroke-width="2.5" stroke-dasharray="6 4" stroke-linejoin="round"/>';
+ rows.forEach(r=>{svg+='<circle cx="'+x(r.hour)+'" cy="'+yTau(r.tau)+'" r="3.2" fill="#55c5e8"><title>Hour '+r.hour+' UTC: tau '+r.tau+'</title></circle><circle cx="'+x(r.hour)+'" cy="'+yT(r.T)+'" r="3.2" fill="#f4bd61"><title>Hour '+r.hour+' UTC: T '+r.T+'</title></circle>'});
+ svg+='<text x="'+L+'" y="12" fill="#55c5e8" font-size="10">τ · left axis</text><text x="'+(W-R)+'" y="12" text-anchor="end" fill="#f4bd61" font-size="10">T · right axis</text></svg>';
+ return svg;
+}
+function render(record,path){
+ const s=record.summary||{},v=record.validation||{},src=record.source||{},rows=Array.isArray(record.hourly)?record.hourly:[];
+ const a=annotationFor(record), peak=record.peak||null;
+ const recordUrl=base+'/published/'+path;
+ const runtime=v.runtime||{},filter=s.filter||{};
+ const warn=(v.note||'').match(/full-record tau reference[^.]+\./i);
+ $('app').innerHTML=
+ '<section class="metrics">'+
+ metric('A · amplitude energy',fmt(s.A,4),'Whole-record RMS')+
+ metric('T · spectral coherence',fmt(s.T,4),'Welch power fraction')+
+ metric('τ · persistence',fmt(s.tau,0),'Whole-record threshold count')+
+ metric('Complete hours',esc(s.complete_hours),'3600 samples per hour')+
+ '</section>'+
+ '<section class="panel"><div class="top"><div><div class="eyebrow">Selected archive observation</div><h2 style="margin:5px 0">'+esc((src.object_key||'').split('/').pop())+'</h2><div class="muted small">'+esc(src.observation_date_utc)+' · Transmitter '+esc(src.transmitter)+' · Archive folder '+esc(src.archive_station_folder)+' · variant '+esc(src.archive_variant)+'</div></div><div class="toolbar"><a href="'+esc(record.workflow_url)+'" target="_blank" rel="noopener">Open validation run ↗</a><a href="'+esc(recordUrl)+'" target="_blank" rel="noopener">View record JSON ↗</a></div></div>'+
+ '<div class="two" style="margin-top:20px"><div><h2>Hourly signal profile</h2><div class="legend"><span><i class="dot" style="background:#55c5e8"></i>τ persistence</span><span><i class="dot" style="background:#f4bd61"></i>T coherence</span><span class="muted">UTC hour · separate axes</span></div><div class="chart-wrap">'+drawChart(rows)+'</div></div>'+
+ '<div><h2>Human interpretation</h2><div class="annotation">'+(a?'<h3><span class="tag">Human indicator '+esc(a.indicator)+'</span></h3><p class="small">Reviewer: '+esc(a.reviewer)+'</p><p class="small">Reviewed: '+esc(niceDate(a.reviewed_at_utc))+'</p><p class="small">'+esc(a.notes||'No notes supplied.')+'</p><p class="small muted">Provenance: '+esc(a.provenance)+'</p>':'<h3><span class="tag unassigned">Unassigned</span></h3><p class="small muted">No complete, valid human annotation is attached to this recording. The dashboard does not derive an indicator from A, T or τ.</p>')+'</div>'+
+ '<p class="small muted" style="margin-top:15px">A/B/C/D are human interpretation labels only. They are not generated by the signal engine.</p></div></div></section>'+
+ (warn?'<section class="panel warning"><strong>Scientific validation note</strong><p class="small">'+esc(warn[0])+' The record retains this discrepancy; the dashboard does not alter or reconcile the measurements.</p></section>':'')+
+ '<section class="panel"><h2>Hourly measurements · UTC</h2><p class="small muted">Only complete 3,600-sample windows are listed. The trailing partial window is not padded.</p><div class="table-wrap"><table><thead><tr><th>Hour</th><th>A · RMS</th><th>T · PSD fraction</th><th>τ · count</th></tr></thead><tbody>'+
+ (rows.length?rows.map(r=>'<tr><td>'+String(r.hour).padStart(2,'0')+':00</td><td>'+fmt(r.A,4)+'</td><td>'+fmt(r.T,4)+'</td><td>'+esc(r.tau)+'</td></tr>').join(''):'<tr><td colspan="4">No hourly rows published.</td></tr>')+
+ '</tbody></table></div></section>'+
+ '<section class="panel"><h2>Acquisition and processing provenance</h2><dl class="meta">'+
+ meta('Publication time',niceDate(record.published_at_utc))+
+ meta('GitHub run / attempt',String(record.run_id)+' / '+String(record.run_attempt))+
+ meta('Source provider',src.provider)+meta('S3 bucket / region',String(src.bucket||'—')+' / '+String(src.region||'—'))+
+ meta('Source object key',src.object_key)+meta('Source ETag',src.object_etag)+meta('Object size',src.object_size_bytes?Number(src.object_size_bytes).toLocaleString()+' bytes':'—')+
+ meta('Samples / sample rate',String(s.samples??'—')+' / '+String(s.sample_rate_hz??'—')+' Hz')+
+ meta('Trailing partial samples',s.trailing_partial_hour_samples)+
+ meta('Normalization','Full-record median: (x − median(x)) / median(x), when median is nonzero')+
+ meta('Filter',filter.type?filter.order+'th-order '+filter.type+', '+filter.low_hz+'–'+filter.high_hz+' Hz, '+(filter.zero_phase?'zero phase':''):'—')+
+ meta('Runtime',Object.keys(runtime).length?['Python '+runtime.python,'NumPy '+runtime.numpy,'SciPy '+runtime.scipy].join(' · '):'—')+
+ '</dl><p class="small muted" style="margin-top:14px">The source MAT file is not hosted by this dashboard. The record preserves the source object identity, checksum metadata, processing configuration and workflow provenance.</p></section>';
+}
+function metric(name,value,hint){return '<div class="metric"><div class="name">'+name+'</div><div class="value">'+value+'</div><div class="hint">'+hint+'</div></div>'}
+function meta(k,v){return '<dt>'+esc(k)+'</dt><dd>'+esc(v)+'</dd>'}
+async function selectRecord(path){try{let r=records.get(path);if(!r){r=await json('published/'+path);records.set(path,r)}render(r,path);setStatus('Published validation record loaded. Source data and measurements are shown as recorded.','ok')}catch(e){setStatus('Could not load selected record: '+e.message,'error')}}
+async function refresh(){
+ setStatus('Refreshing published index and annotations…');
+ try{
+  indexData=await json('published/index.json');
+  if(!Array.isArray(indexData.runs)||!indexData.runs.length){$('runSelect').innerHTML='';$('app').innerHTML='<div class="panel empty">No validation records have been published yet.</div>';setStatus('The publication index is valid but contains no runs.');return}
+  annotations=await json('published/annotations.json').catch(()=>({annotations:[]}));
+  const sorted=[...indexData.runs].sort((a,b)=>Number(b.run_id)-Number(a.run_id)||Number(b.run_attempt)-Number(a.run_attempt));
+  $('runSelect').innerHTML=sorted.map(x=>'<option value="'+esc(x.record)+'">Run '+esc(x.run_id)+' · attempt '+esc(x.run_attempt)+'</option>').join('');
+  await selectRecord(sorted[0].record);
+ }catch(e){$('app').innerHTML='<div class="panel empty">Published data could not be loaded. Check the public data branch and try again.</div>';setStatus('Data connection failed: '+e.message,'error')}
+}
+$('refresh').addEventListener('click',refresh);
+$('runSelect').addEventListener('change',e=>selectRecord(e.target.value));
+refresh();
+</script>
+</body>
+</html>
