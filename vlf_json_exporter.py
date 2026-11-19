@@ -177,6 +177,7 @@ def build_export(signal: np.ndarray, filtered: np.ndarray, filename: str) -> dic
         },
         "hourly": hourly,
         "peak": peak,
+        "interpretation_policy": "No A/B/C/D state is assigned automatically. Any human indicator must be supplied separately after review.",
     }
 
 
