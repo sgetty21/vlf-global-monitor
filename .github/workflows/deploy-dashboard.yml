@@ -30,5 +30,8 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dashboard
+      # GitHub's artifact metadata can take a moment to become visible to the Pages API.
+      - name: Wait for Pages artifact metadata
+        run: sleep 15
       - id: deployment
         uses: actions/deploy-pages@v4
