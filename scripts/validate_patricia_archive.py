@@ -10,6 +10,9 @@ import json
 import tempfile
 import urllib.request
 from pathlib import Path
+
+import numpy as np
+from scipy.signal import welch
 import sys
 
 # Make the repository root importable when this script is run from scripts/.
@@ -22,6 +25,17 @@ BUCKET_HOST = "craam-files-bucket.s3.sa-east-1.amazonaws.com"
 OBJECT_KEY = "2015/10/22/narrowband/FE/FE151022000500NAA_008A.mat"
 EXPECTED_SIZE = 352232
 EXPECTED_ETAG = "b85ced04184a54c8641063f7f806e7fe"
+
+
+def coherence_diagnostic(values: np.ndarray, nperseg: int) -> float:
+    """Calculate the existing centroid ±10% T metric for a Welch sensitivity check."""
+    frequencies, power = welch(values, fs=1.0, nperseg=min(nperseg, values.size))
+    total_power = float(np.sum(power))
+    if total_power <= 0.0 or not np.isfinite(total_power):
+        return 0.0
+    centroid = float(np.sum(frequencies * power) / total_power)
+    in_band = (frequencies >= 0.9 * centroid) & (frequencies <= 1.1 * centroid)
+    return round(float(np.sum(power[in_band]) / total_power), 4)
 
 
 def main():
@@ -52,6 +66,10 @@ def main():
         signal = load_amplitude_array(mat_path)
         filtered = normalize_and_filter(signal)
         result = build_export(signal, filtered, Path(OBJECT_KEY).name)
+        # Diagnostic only: compare the current full-record Welch segment length
+        # with the 256-sample setting found in the earlier project exporter.
+        # This does not alter the canonical exporter or its reported metrics.
+        legacy_t_256 = coherence_diagnostic(filtered, 256)
 
     result["source"] = {
         "provider": "CRAAM Open VLF public S3 bucket",
@@ -81,6 +99,17 @@ def main():
             "A_matches_previous_local_reference": summary["A"] == 0.0248,
             "T_matches_previous_local_reference": summary["T"] == 0.0512,
             "tau_matches_previous_local_reference": summary["tau"] == 1256,
+        },
+        "welch_sensitivity_diagnostic": {
+            "current_full_record_nperseg": min(4096, filtered.size),
+            "legacy_project_nperseg": min(256, filtered.size),
+            "current_T": summary["T"],
+            "legacy_256_T": legacy_t_256,
+            "previously_cited_T": 0.0826,
+            "note": (
+                "The 256-sample result is diagnostic only. It is not substituted "
+                "for the current exporter output or adopted as the canonical T value."
+            ),
         },
         "note": (
             "The earlier cited T=0.0826 remains an unresolved historical discrepancy. "
