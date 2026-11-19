@@ -125,7 +125,7 @@ def main():
     try: d=date.fromisoformat(a.date)
     except ValueError: p.error("--date must be YYYY-MM-DD")
     if d.isoformat()!=a.date: p.error("--date must be canonical YYYY-MM-DD")
-    if not 1<=a.max_files<=200: p.error("--max-files must be between 1 and 200")
+    if not 1<=a.max_files<=20: p.error("--max-files must be between 1 and 20")
     prefix=f"{d:%Y/%m/%d}/narrowband/"
     objects=list_objects(prefix)
     all_count=len(objects)
