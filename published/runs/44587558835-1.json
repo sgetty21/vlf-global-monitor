@@ -1,0 +1,403 @@
+{
+  "schema_version": 1,
+  "run_id": 44587558835,
+  "run_attempt": 1,
+  "published_at_utc": "",
+  "workflow_url": "https://github.com/sgetty21/vlf-global-monitor/actions/runs/44587558835",
+  "source": {
+    "provider": "CRAAM Open VLF public S3 bucket",
+    "bucket": "craam-files-bucket",
+    "region": "sa-east-1",
+    "object_key": "2015/10/22/narrowband/FE/FE151022000500NAA_008A.mat",
+    "object_etag": "b85ced04184a54c8641063f7f806e7fe",
+    "object_size_bytes": 352232,
+    "observation_date_utc": "2015-10-22",
+    "transmitter": "NAA",
+    "archive_station_folder": "FE",
+    "archive_variant": "008A"
+  },
+  "summary": {
+    "samples": 85800,
+    "sample_rate_hz": 1.0,
+    "duration_seconds": 85800,
+    "complete_hours": 23,
+    "trailing_partial_hour_samples": 3000,
+    "A": 0.0248,
+    "T": 0.0512,
+    "tau": 1256,
+    "filter": {
+      "type": "Butterworth bandpass",
+      "order": 5,
+      "low_hz": 0.001,
+      "high_hz": 0.1,
+      "zero_phase": true
+    },
+    "normalization": "24-hour median: (x - median(x)) / median(x)"
+  },
+  "hourly": [
+    {
+      "hour": 0,
+      "tau": 55,
+      "A": 0.0145,
+      "T": 0.0469
+    },
+    {
+      "hour": 1,
+      "tau": 40,
+      "A": 0.0141,
+      "T": 0.0507
+    },
+    {
+      "hour": 2,
+      "tau": 58,
+      "A": 0.0168,
+      "T": 0.073
+    },
+    {
+      "hour": 3,
+      "tau": 62,
+      "A": 0.0146,
+      "T": 0.0702
+    },
+    {
+      "hour": 4,
+      "tau": 38,
+      "A": 0.0135,
+      "T": 0.1495
+    },
+    {
+      "hour": 5,
+      "tau": 63,
+      "A": 0.0164,
+      "T": 0.029
+    },
+    {
+      "hour": 6,
+      "tau": 30,
+      "A": 0.067,
+      "T": 0.0974
+    },
+    {
+      "hour": 7,
+      "tau": 77,
+      "A": 0.0248,
+      "T": 0.0334
+    },
+    {
+      "hour": 8,
+      "tau": 47,
+      "A": 0.0223,
+      "T": 0.0521
+    },
+    {
+      "hour": 9,
+      "tau": 77,
+      "A": 0.025,
+      "T": 0.0765
+    },
+    {
+      "hour": 10,
+      "tau": 62,
+      "A": 0.0173,
+      "T": 0.1009
+    },
+    {
+      "hour": 11,
+      "tau": 53,
+      "A": 0.0188,
+      "T": 0.0467
+    },
+    {
+      "hour": 12,
+      "tau": 77,
+      "A": 0.0233,
+      "T": 0.0212
+    },
+    {
+      "hour": 13,
+      "tau": 51,
+      "A": 0.0197,
+      "T": 0.045
+    },
+    {
+      "hour": 14,
+      "tau": 52,
+      "A": 0.0163,
+      "T": 0.1065
+    },
+    {
+      "hour": 15,
+      "tau": 53,
+      "A": 0.0179,
+      "T": 0.0898
+    },
+    {
+      "hour": 16,
+      "tau": 80,
+      "A": 0.0172,
+      "T": 0.056
+    },
+    {
+      "hour": 17,
+      "tau": 66,
+      "A": 0.0223,
+      "T": 0.0596
+    },
+    {
+      "hour": 18,
+      "tau": 56,
+      "A": 0.023,
+      "T": 0.0612
+    },
+    {
+      "hour": 19,
+      "tau": 47,
+      "A": 0.0202,
+      "T": 0.0481
+    },
+    {
+      "hour": 20,
+      "tau": 72,
+      "A": 0.0349,
+      "T": 0.0236
+    },
+    {
+      "hour": 21,
+      "tau": 70,
+      "A": 0.0256,
+      "T": 0.0946
+    },
+    {
+      "hour": 22,
+      "tau": 61,
+      "A": 0.0281,
+      "T": 0.0411
+    }
+  ],
+  "peak": {
+    "hour": 16,
+    "tau": 80,
+    "A": 0.0172,
+    "T": 0.056
+  },
+  "interpretation_policy": "No A/B/C/D state is assigned automatically. Any human indicator must be supplied separately after review.",
+  "validation": {
+    "object_identity_verified": true,
+    "object_key": "2015/10/22/narrowband/FE/FE151022000500NAA_008A.mat",
+    "sample_count": 85800,
+    "complete_hours": 23,
+    "trailing_partial_hour_samples": 3000,
+    "observed": {
+      "A": 0.0248,
+      "T": 0.0512,
+      "tau": 1256
+    },
+    "previous_local_reference": {
+      "A": 0.0248,
+      "T": 0.0512,
+      "tau": 1256
+    },
+    "comparison": {
+      "A_matches_previous_local_reference": true,
+      "T_matches_previous_local_reference": true,
+      "tau_matches_previous_local_reference": true
+    },
+    "runtime": {
+      "python": "3.11.18",
+      "numpy": "2.4.6",
+      "scipy": "1.17.1"
+    },
+    "hourly_sensitivity_diagnostic": {
+      "method": "same normalized and filtered series; consecutive complete 3600-sample windows",
+      "comparison": "nperseg=256 (legacy) versus nperseg=4096 (current)",
+      "hourly_rows": [
+        {
+          "hour": 0,
+          "A": 0.0145,
+          "tau": 55,
+          "T_nperseg_256": 0.0695,
+          "T_nperseg_4096": 0.0469
+        },
+        {
+          "hour": 1,
+          "A": 0.0141,
+          "tau": 40,
+          "T_nperseg_256": 0.064,
+          "T_nperseg_4096": 0.0507
+        },
+        {
+          "hour": 2,
+          "A": 0.0168,
+          "tau": 58,
+          "T_nperseg_256": 0.0749,
+          "T_nperseg_4096": 0.073
+        },
+        {
+          "hour": 3,
+          "A": 0.0146,
+          "tau": 62,
+          "T_nperseg_256": 0.0743,
+          "T_nperseg_4096": 0.0702
+        },
+        {
+          "hour": 4,
+          "A": 0.0135,
+          "tau": 38,
+          "T_nperseg_256": 0.1079,
+          "T_nperseg_4096": 0.1495
+        },
+        {
+          "hour": 5,
+          "A": 0.0164,
+          "tau": 63,
+          "T_nperseg_256": 0.0359,
+          "T_nperseg_4096": 0.029
+        },
+        {
+          "hour": 6,
+          "A": 0.067,
+          "tau": 30,
+          "T_nperseg_256": 0.1286,
+          "T_nperseg_4096": 0.0974
+        },
+        {
+          "hour": 7,
+          "A": 0.0248,
+          "tau": 77,
+          "T_nperseg_256": 0.0766,
+          "T_nperseg_4096": 0.0334
+        },
+        {
+          "hour": 8,
+          "A": 0.0223,
+          "tau": 47,
+          "T_nperseg_256": 0.061,
+          "T_nperseg_4096": 0.0521
+        },
+        {
+          "hour": 9,
+          "A": 0.025,
+          "tau": 77,
+          "T_nperseg_256": 0.062,
+          "T_nperseg_4096": 0.0765
+        },
+        {
+          "hour": 10,
+          "A": 0.0173,
+          "tau": 62,
+          "T_nperseg_256": 0.0825,
+          "T_nperseg_4096": 0.1009
+        },
+        {
+          "hour": 11,
+          "A": 0.0188,
+          "tau": 53,
+          "T_nperseg_256": 0.0717,
+          "T_nperseg_4096": 0.0467
+        },
+        {
+          "hour": 12,
+          "A": 0.0233,
+          "tau": 77,
+          "T_nperseg_256": 0.0719,
+          "T_nperseg_4096": 0.0212
+        },
+        {
+          "hour": 13,
+          "A": 0.0197,
+          "tau": 51,
+          "T_nperseg_256": 0.086,
+          "T_nperseg_4096": 0.045
+        },
+        {
+          "hour": 14,
+          "A": 0.0163,
+          "tau": 52,
+          "T_nperseg_256": 0.1005,
+          "T_nperseg_4096": 0.1065
+        },
+        {
+          "hour": 15,
+          "A": 0.0179,
+          "tau": 53,
+          "T_nperseg_256": 0.0388,
+          "T_nperseg_4096": 0.0898
+        },
+        {
+          "hour": 16,
+          "A": 0.0172,
+          "tau": 80,
+          "T_nperseg_256": 0.1148,
+          "T_nperseg_4096": 0.056
+        },
+        {
+          "hour": 17,
+          "A": 0.0223,
+          "tau": 66,
+          "T_nperseg_256": 0.0358,
+          "T_nperseg_4096": 0.0596
+        },
+        {
+          "hour": 18,
+          "A": 0.023,
+          "tau": 56,
+          "T_nperseg_256": 0.0387,
+          "T_nperseg_4096": 0.0612
+        },
+        {
+          "hour": 19,
+          "A": 0.0202,
+          "tau": 47,
+          "T_nperseg_256": 0.0731,
+          "T_nperseg_4096": 0.0481
+        },
+        {
+          "hour": 20,
+          "A": 0.0349,
+          "tau": 72,
+          "T_nperseg_256": 0.0499,
+          "T_nperseg_4096": 0.0236
+        },
+        {
+          "hour": 21,
+          "A": 0.0256,
+          "tau": 70,
+          "T_nperseg_256": 0.0597,
+          "T_nperseg_4096": 0.0946
+        },
+        {
+          "hour": 22,
+          "A": 0.0281,
+          "tau": 61,
+          "T_nperseg_256": 0.0332,
+          "T_nperseg_4096": 0.0411
+        }
+      ],
+      "A_and_tau_invariant_to_nperseg": true,
+      "maximum_hourly_tau": 80,
+      "maximum_tau_hour": 16,
+      "historical_hour_20_tau_claim": 710,
+      "historical_hour_20_tau_reproduced": false,
+      "historical_hour_20_A_claim": 0.0295,
+      "historical_hour_20_T_claim": 0.0872,
+      "current_hour_20": {
+        "hour": 20,
+        "A": 0.0349,
+        "tau": 72,
+        "T_nperseg_256": 0.0499,
+        "T_nperseg_4096": 0.0236
+      },
+      "interpretation": "The historical hour-20 values (A=0.0295, T=0.0872, tau=710) are not reproduced from the checksum-verified fixture under the documented global-median normalization, whole-record filter, and per-hour 2.5*std(window) persistence definition. The prior claim has no recorded sigma or reproducible calculation source and must not be treated as a validated benchmark."
+    },
+    "welch_sensitivity_diagnostic": {
+      "current_full_record_nperseg": 4096,
+      "legacy_project_nperseg": 256,
+      "current_T": 0.0512,
+      "legacy_256_T": 0.0826,
+      "previously_cited_T": 0.0826,
+      "note": "The 256-sample result is diagnostic only. It is not substituted for the current exporter output or adopted as the canonical T value."
+    },
+    "note": "The earlier full-record T=0.0826 is reproduced by the 256-sample Welch diagnostic. The historical hour-20 A/T/tau claim is not reproduced by the documented per-hour calculation and is unverified. The full-record tau reference of 1252 differs from the current 1256 by four counts; runtime versions are recorded. State labels are not calculated by the metrics exporter; interpretation is reserved for human review.",
+    "raw_mat_retained": false
+  }
+}
