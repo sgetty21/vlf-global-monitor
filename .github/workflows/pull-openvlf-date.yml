@@ -75,7 +75,7 @@ jobs:
           git checkout -B publish-historical FETCH_HEAD
           TARGET="historical/$OBSERVATION_DATE/$RUN_ID-$RUN_ATTEMPT"
           mkdir -p "$TARGET"
-          cp /tmp/openvlf-output/*.json "$TARGET/"
+          cp -a /tmp/openvlf-output/. "$TARGET/"
           python - <<'PY'
           import json, os
           from pathlib import Path
