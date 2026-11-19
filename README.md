@@ -47,3 +47,10 @@ The dashboard is a repository artifact. Public hosting (for example, GitHub Page
 ## Open science and reuse
 
 This repository is released under the MIT License. Contributions, independent replication, issue reports and clearly documented alternative analyses are welcome. Please preserve the distinction between measured quantities, human annotations and hypotheses when extending the project.
+
+
+## Historical date retrieval
+
+The repository includes a manual GitHub Actions workflow for retrieving a specific UTC date from the public CRAAM Open VLF S3 archive. It discovers the date's narrowband objects, filters to type-A narrowband amplitude, verifies object size/ETag and MAT metadata, and processes each eligible transmitter–receiver recording independently with the frozen engine. The workflow publishes per-recording metrics and compressed 1 Hz raw/filtered waveform sidecars to the `data` branch. See [historical retrieval operations](docs/DASHBOARD_OPERATIONS.md#historical-open-vlf-retrieval).
+
+The first acceptance target is 2015-10-22 / FE / NAA, using the checksum-verified Patricia reference. Historical retrieval is intentionally manual and capped per run; it is not a full archive mirror or a continuously running service. The dashboard can browse already retrieved dates and inspect their waveforms.
