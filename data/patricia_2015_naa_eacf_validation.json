@@ -1,0 +1,53 @@
+{
+  "reference_fixture": {
+    "filename": "FE151022000500NAA_008A(1).mat",
+    "purpose": "Regression-test reference for the VLF Spectral State Engine during buildout",
+    "receiver_station": "EACF",
+    "transmitter_callsign": "NAA",
+    "carrier_frequency_hz": 24000,
+    "sample_rate_hz": 1,
+    "is_broadband": false,
+    "is_amplitude": true,
+    "start_time_utc": "2015-10-22T00:05:00Z",
+    "sample_count": 85800,
+    "duration_seconds": 85800,
+    "finite_samples": true
+  },
+  "processing": {
+    "normalization": "(x - median(x)) / median(x)",
+    "filter": {
+      "type": "Butterworth bandpass",
+      "order": 5,
+      "low_hz": 0.001,
+      "high_hz": 0.1,
+      "zero_phase": true
+    },
+    "hourly_window_samples": 3600,
+    "partial_window_policy": "Report trailing samples; do not pad"
+  },
+  "computed_full_record_metrics": {
+    "A_rms": 0.0248,
+    "T_welch_centroid_plus_minus_10pct_power_fraction": 0.0512,
+    "tau": 1256,
+    "state": "A",
+    "complete_hour_windows": 23,
+    "trailing_partial_samples": 3000
+  },
+  "previously_cited_reference_values": {
+    "A": 0.0248,
+    "T": 0.0826,
+    "tau": "1252\u20131256"
+  },
+  "validation_status": {
+    "A": "matches previously cited reference",
+    "tau": "matches previously cited reference range",
+    "T": "does not match; investigate Welch PSD/centroid-band implementation before claiming full validation",
+    "overall": "partial validation only; do not silently change frozen state thresholds"
+  },
+  "scientific_guardrails": [
+    "Process each TX-RX corridor independently",
+    "Do not pad incomplete hourly windows",
+    "Do not interpret the monitor as predictive",
+    "Do not estimate direct wind speed from these metrics"
+  ]
+}
