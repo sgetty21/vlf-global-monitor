@@ -10,30 +10,70 @@ on:
       - ".github/workflows/validate-patricia-archive.yml"
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: patricia-publication
+  cancel-in-progress: false
 
 jobs:
-  validate:
+  validate-and-publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
+      - name: Check out source
         uses: actions/checkout@v4
-
+        with:
+          ref: main
+          fetch-depth: 0
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-
       - name: Install scientific dependencies
         run: python -m pip install -r requirements.txt
-
-      - name: Download and process verified CRAAM object
+      - name: Validate verified CRAAM object
         run: python scripts/validate_patricia_archive.py --output-dir data/patricia-validation
-
-      - name: Upload validation outputs (raw MAT is not retained)
+      - name: Upload diagnostic artifact
         uses: actions/upload-artifact@v4
         with:
           name: patricia-naa-validation
           path: data/patricia-validation/
           if-no-files-found: error
           retention-days: 30
+      - name: Prepare durable publication
+        env:
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          CREATED_AT: ${{ github.run_started_at }}
+        run: |
+          python scripts/publish_validation_record.py \
+            --input data/patricia-validation/patricia_2015_naa_eacf_validation.json \
+            --report data/patricia-validation/validation_report.json \
+            --published-dir published \
+            --run-id "$RUN_ID" --run-attempt "$RUN_ATTEMPT" \
+            --run-url "$RUN_URL" --created-at "$CREATED_AT"
+      - name: Publish append-only record to data branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin data
+          git checkout -B publish-data FETCH_HEAD
+          mkdir -p published/runs
+          cp -a published/. published/
+          # Restore generated files from the validated workspace without touching annotations.
+          git checkout main -- scripts/publish_validation_record.py
+          python scripts/publish_validation_record.py \
+            --input "$GITHUB_WORKSPACE/data/patricia-validation/patricia_2015_naa_eacf_validation.json" \
+            --report "$GITHUB_WORKSPACE/data/patricia-validation/validation_report.json" \
+            --published-dir published \
+            --run-id "$RUN_ID" --run-attempt "$RUN_ATTEMPT" \
+            --run-url "$RUN_URL" --created-at "$CREATED_AT"
+          git add published/index.json "published/runs/$RUN_ID-$RUN_ATTEMPT.json"
+          git diff --cached --quiet && exit 0
+          git commit -m "Publish Patricia validation run $RUN_ID attempt $RUN_ATTEMPT"
+          git push origin HEAD:data
