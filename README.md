@@ -1,15 +1,49 @@
-# vlf-global-monitor
+# VLF Global Monitor
 
-Exploratory dashboard of how the Earth-ionosphere waveguide, specifically the D-region (≈60-90 km altitude), responds to diverse energetic forcings as observed through fixed-path Very Low Frequency (VLF) radio propagation.
+An open, exploratory project for examining how fixed-path Very Low Frequency (VLF) radio propagation responds to changing conditions in the Earth-ionosphere waveguide, particularly the D-region (approximately 60–90 km altitude).
+
+The project is intended as a transparent scientific monitoring and analysis resource. It does not predict earthquakes, provide pre-seismic forecasts, or directly estimate wind speed.
 
 ## Current processing scope
 
-The frozen spectral-state engine currently accepts **1 Hz narrowband amplitude recordings only**. CRAAM archive type A is narrowband amplitude; type B is narrowband phase. These are different measurements, not separate corridors. Broadband types C, D, and F are also excluded from the current engine.
+The current processing pipeline is limited to **1 Hz narrowband amplitude recordings** from the CRAAM Open VLF archive.
 
-See [CRAAM archive format and ingestion policy](docs/CRAAM_ARCHIVE_FORMAT.md) for the source-backed mapping and filtering rules.
+- CRAAM type A: narrowband amplitude — included in the current engine.
+- CRAAM type B: narrowband phase — not processed by the current amplitude engine.
+- CRAAM types C, D and F: broadband measurement types — not processed by the current amplitude engine.
 
-## Validation
+These archive type codes identify measurement products; they do not identify separate propagation corridors. Each transmitter–receiver path should be treated independently rather than averaged with other paths.
 
-The Patricia 2015-10-22 NAA type-A archive object has been downloaded and processed in GitHub Actions. Its archive identity and outputs match the local reference (A=0.0248, T=0.0512, tau=1256). The earlier historical T=0.0826 discrepancy remains unresolved; no frozen metric definition or threshold was changed.
+See [CRAAM archive format and ingestion policy](docs/CRAAM_ARCHIVE_FORMAT.md) for the archive mapping and filtering rules.
 
-The raw MATLAB reference is not retained in the repository.
+## Measurement outputs and interpretation
+
+The engine reports three quantitative measurements for each complete hourly window:
+
+- **A — amplitude energy:** RMS of the filtered, normalized amplitude signal.
+- **T — spectral coherence:** fraction of Welch power spectral density within the defined band around the spectral centroid.
+- **τ — persistence:** count of samples whose absolute filtered value exceeds 2.5 times the filtered signal's standard deviation.
+
+The current frozen processing definition uses median normalization, a fifth-order zero-phase Butterworth bandpass from 0.001 to 0.1 Hz, and complete 3,600-sample hourly windows. Incomplete trailing hours are not padded into a full window.
+
+**A/B/C/D state indicators are human interpretations, not automatic classifications.** The engine does not infer these labels from A, T or τ. If an indicator is supplied, it must be entered separately by a human reviewer and should be treated as an annotation whose provenance and interpretation are documented. Missing indicators remain unassigned.
+
+Historical benchmark labels displayed in the dashboard are retained for context only. They are not current engine outputs, and their provenance and interpretation require human review.
+
+## Patricia reference validation
+
+The project includes a reference validation for the 2015-10-22 NAA–EACF narrowband-amplitude archive recording. The recorded full-file metrics are A = 0.0248, T = 0.0512 and τ = 1256.
+
+An earlier analysis produced different hourly results, and a historical T value of 0.0826 remains discrepant. This discrepancy is unresolved. The reference record is preserved for investigation; the processing equations and thresholds have not been changed to force agreement.
+
+The raw MATLAB recording is not stored in this repository. The validation JSON and report are derived artifacts; consult their metadata and the workflow logs when reproducing the validation.
+
+## Workflows and dashboard
+
+GitHub Actions workflows support CRAAM archive discovery and the Patricia reference validation. The dashboard source is located at [dashboard/vlf-d-region-monitor.html](dashboard/vlf-d-region-monitor.html). It can load JSON containing hourly A, T and τ measurements, with an optional separately supplied `human_indicator` field.
+
+The dashboard is a repository artifact. Public hosting (for example, GitHub Pages) must be configured and tested separately before it should be described as a live service.
+
+## Open science and reuse
+
+This repository is released under the MIT License. Contributions, independent replication, issue reports and clearly documented alternative analyses are welcome. Please preserve the distinction between measured quantities, human annotations and hypotheses when extending the project.
