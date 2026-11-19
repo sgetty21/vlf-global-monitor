@@ -12,6 +12,7 @@ import urllib.request
 from pathlib import Path
 
 import numpy as np
+import scipy
 from scipy.signal import welch
 import sys
 
@@ -37,6 +38,23 @@ def coherence_diagnostic(values: np.ndarray, nperseg: int) -> float:
     in_band = (frequencies >= 0.9 * centroid) & (frequencies <= 1.1 * centroid)
     return round(float(np.sum(power[in_band]) / total_power), 4)
 
+
+
+def hourly_welch_sensitivity(filtered: np.ndarray) -> list[dict]:
+    """Compare legacy (256) and current (4096) Welch settings per complete hour."""
+    rows = []
+    for hour in range(filtered.size // 3600):
+        window = filtered[hour * 3600:(hour + 1) * 3600]
+        a_value = float(np.sqrt(np.mean(np.square(window))))
+        tau_value = int(np.count_nonzero(np.abs(window) > 2.5 * float(np.std(window))))
+        rows.append({
+            "hour": hour,
+            "A": round(a_value, 4),
+            "tau": tau_value,
+            "T_nperseg_256": coherence_diagnostic(window, 256),
+            "T_nperseg_4096": coherence_diagnostic(window, 4096),
+        })
+    return rows
 
 def main():
     parser = argparse.ArgumentParser()
@@ -70,6 +88,7 @@ def main():
         # with the 256-sample setting found in the earlier project exporter.
         # This does not alter the canonical exporter or its reported metrics.
         legacy_t_256 = coherence_diagnostic(filtered, 256)
+        hourly_sensitivity = hourly_welch_sensitivity(filtered)
 
     result["source"] = {
         "provider": "CRAAM Open VLF public S3 bucket",
@@ -100,6 +119,33 @@ def main():
             "T_matches_previous_local_reference": summary["T"] == 0.0512,
             "tau_matches_previous_local_reference": summary["tau"] == 1256,
         },
+        "runtime": {"python": sys.version.split()[0], "numpy": np.__version__, "scipy": scipy.__version__},
+        "hourly_sensitivity_diagnostic": {
+            "method": "same normalized and filtered series; consecutive complete 3600-sample windows",
+            "comparison": "nperseg=256 (legacy) versus nperseg=4096 (current)",
+            "hourly_rows": hourly_sensitivity,
+            "A_and_tau_invariant_to_nperseg": all(
+                row["A"] == result["hourly"][row["hour"]]["A"]
+                and row["tau"] == result["hourly"][row["hour"]]["tau"]
+                for row in hourly_sensitivity
+            ),
+            "maximum_hourly_tau": max(row["tau"] for row in hourly_sensitivity),
+            "maximum_tau_hour": max(hourly_sensitivity, key=lambda row: row["tau"])["hour"],
+            "historical_hour_20_tau_claim": 710,
+            "historical_hour_20_tau_reproduced": any(
+                row["hour"] == 20 and row["tau"] == 710 for row in hourly_sensitivity
+            ),
+            "historical_hour_20_A_claim": 0.0295,
+            "historical_hour_20_T_claim": 0.0872,
+            "current_hour_20": next(row for row in hourly_sensitivity if row["hour"] == 20),
+            "interpretation": (
+                "The historical hour-20 values (A=0.0295, T=0.0872, tau=710) are not "
+                "reproduced from the checksum-verified fixture under the documented "
+                "global-median normalization, whole-record filter, and per-hour 2.5*std(window) "
+                "persistence definition. The prior claim has no recorded sigma or reproducible "
+                "calculation source and must not be treated as a validated benchmark."
+            ),
+        },
         "welch_sensitivity_diagnostic": {
             "current_full_record_nperseg": min(4096, filtered.size),
             "legacy_project_nperseg": min(256, filtered.size),
@@ -112,7 +158,7 @@ def main():
             ),
         },
         "note": (
-            "The earlier cited T=0.0826 is reproduced by the 256-sample Welch diagnostic. "
+            "The earlier full-record T=0.0826 is reproduced by the 256-sample Welch diagnostic. The historical hour-20 A/T/tau claim is not reproduced by the documented per-hour calculation and is unverified. The full-record tau reference of 1252 differs from the current 1256 by four counts; runtime versions are recorded. "
             "State labels are not calculated by the metrics exporter; interpretation is reserved for human review."
         ),
         "raw_mat_retained": False,
