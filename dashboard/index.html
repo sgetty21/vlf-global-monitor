@@ -56,7 +56,7 @@ function drawChart(rows){
   const pts=rows.filter(r=>Number.isFinite(Number(r[sp.key])));
   svg+='<path d="'+pts.map((r,i)=>(i?'L':'M')+x(r.hour)+','+y(r[sp.key])).join(' ')+'" fill="none" stroke="'+sp.color+'" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/>';
   pts.forEach(r=>{svg+='<circle class="hour-point" data-hour="'+r.hour+'" cx="'+x(r.hour)+'" cy="'+y(r[sp.key])+'" r="4" fill="'+sp.color+'" stroke="#101a29" stroke-width="1.5"><title>'+String(r.hour).padStart(2,'0')+':00 UTC · '+sp.key+' = '+r[sp.key]+'</title></circle>'});
-  return '<div class="trend-block"><div class="trend-heading"><strong style="color:'+sp.color+'">'+sp.label+'</strong><span class="muted small">hourly · UTC</span></div><div class="chart-wrap">'+svg+'</svg></div></div>';
+  return '<div class="trend-block"><div class="trend-heading"><strong style="color:'+sp.color+'">'+sp.label+'</strong><span class="muted small">hourly · UTC</span></div><div class="chart-wrap">'+svg+'</div></div>';
  }).join('');
  const maxA=Math.max(...rows.map(r=>Number(r.A)||0),1e-9),maxT=Math.max(...rows.map(r=>Number(r.T)||0),1e-9);
  const sx=v=>55+(Number(v)/maxA)*790,sy=v=>145-(Number(v)/maxT)*120;
@@ -123,6 +123,13 @@ async function refresh(){
   await selectRecord(sorted[0].record);
  }catch(e){$('app').innerHTML='<div class="panel empty">Published data could not be loaded. Check the public data branch and try again.</div>';setStatus('Data connection failed: '+e.message,'error')}
 }
+async function fetchWaveform(path){
+ const response=await fetch(base+'/'+path,{cache:'no-store'});
+ if(!response.ok)throw Error('Waveform sidecar returned HTTP '+response.status);
+ if(typeof DecompressionStream==='undefined')throw Error('This browser does not support gzip waveform decompression. Open the recording JSON and use the downloadable waveform artifact instead.');
+ const stream=response.body.pipeThrough(new DecompressionStream('gzip'));
+ return JSON.parse(await new Response(stream).text());
+}
 async function browseHistoricalDate(){
  const date=$('historicalDate').value;
  if(!date){$('historicalStatus').textContent='Choose a date first.';return}
@@ -139,8 +146,8 @@ async function browseHistoricalDate(){
   out.innerHTML='<div class="toolbar" style="margin-top:12px"><label class="small" for="historicalRecord">Recording / path</label><select id="historicalRecord">'+records.map((r,i)=>'<option value="'+i+'">'+esc(r.file)+' · '+esc(r.complete_hours)+' complete h</option>').join('')+'</select><span class="small muted">Run '+esc(run.run_id)+' · attempt '+esc(run.run_attempt)+'</span></div><div id="historicalRecordView"></div>';
   const choose=async i=>{
    const meta=records[Number(i)],rec=await json(folder+meta.record);
-   const wave=rec.waveform||{},raw=wave.raw_amplitude||[],filtered=wave.filtered_normalized||[];
-   const chart=(arr,label,color)=>{if(!arr.length)return '<p class="muted small">Waveform unavailable.</p>';const max= Math.max(...arr.map(Math.abs),1e-12);const n=Math.min(1800,arr.length),step=arr.length/n;let pts=[];for(let k=0;k<n;k++){const j=Math.min(arr.length-1,Math.floor(k*step));pts.push((k?'L':'M')+(k/(n-1)*880+10)+','+(90-Number(arr[j])/max*78))}return '<div class="trend-heading"><strong>'+label+'</strong><span class="muted small">'+arr.length.toLocaleString()+' samples · 1 Hz · display decimated to '+n.toLocaleString()+' points</span></div><svg viewBox="0 0 900 110" role="img" aria-label="'+label+' waveform"><line x1="10" x2="890" y1="90" y2="90" stroke="#34475e"/><path d="'+pts.join(' ')+'" fill="none" stroke="'+color+'" stroke-width="1.2" vector-effect="non-scaling-stroke"/></svg>'};
+   const wave=await fetchWaveform(folder+meta.waveform),raw=wave.raw_amplitude||[],filtered=wave.filtered_normalized||[];
+   const chart=(arr,label,color)=>{if(!arr.length)return '<p class="muted small">Waveform unavailable.</p>';let max=1e-12;for(const v of arr){const av=Math.abs(Number(v));if(av>max)max=av;}const n=Math.min(1800,arr.length),step=arr.length/n;let pts=[];for(let k=0;k<n;k++){const j=Math.min(arr.length-1,Math.floor(k*step));pts.push((k?'L':'M')+(k/(n-1)*880+10)+','+(90-Number(arr[j])/max*78))}return '<div class="trend-heading"><strong>'+label+'</strong><span class="muted small">'+arr.length.toLocaleString()+' samples · 1 Hz · display decimated to '+n.toLocaleString()+' points</span></div><svg viewBox="0 0 900 110" role="img" aria-label="'+label+' waveform"><line x1="10" x2="890" y1="90" y2="90" stroke="#34475e"/><path d="'+pts.join(' ')+'" fill="none" stroke="'+color+'" stroke-width="1.2" vector-effect="non-scaling-stroke"/></svg>'};
    const v=$('historicalRecordView');
    v.innerHTML='<div class="metrics">'+metric('A · amplitude energy',fmt(rec.summary?.A,4),'Whole-record RMS')+metric('T · spectral coherence',fmt(rec.summary?.T,4),'Welch power fraction')+metric('τ · persistence',fmt(rec.summary?.tau,0),'Whole-record count')+metric('Complete hours',esc(rec.summary?.complete_hours),'3600 samples per hour')+'</div><div class="panel"><h2>1 Hz waveform inspection</h2><p class="small muted">Original amplitude and normalized, filtered signal. Plotted samples are decimated for display only; downloaded JSON retains every sample.</p>'+chart(raw,'Raw amplitude','#73d6a0')+chart(filtered,'Normalized, filtered signal','#55c5e8')+'</div><div class="panel"><h2>Hourly measurements · UTC</h2><div class="table-wrap"><table><thead><tr><th>Hour</th><th>A</th><th>T</th><th>τ</th></tr></thead><tbody>'+(rec.hourly||[]).map(r=>'<tr><td>'+String(r.hour).padStart(2,'0')+':00</td><td>'+fmt(r.A,4)+'</td><td>'+fmt(r.T,4)+'</td><td>'+esc(r.tau)+'</td></tr>').join('')+'</tbody></table></div><p class="small muted">Source: '+esc(rec.source?.object_key)+' · ETag '+esc(rec.source?.object_etag)+' · SHA-256 '+esc(rec.source?.downloaded_sha256)+'</p><a href="'+base+'/'+folder+meta.record+'" target="_blank" rel="noopener">Open complete recording JSON ↗</a></div>';
   };
