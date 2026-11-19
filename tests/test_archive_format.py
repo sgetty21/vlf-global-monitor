@@ -7,6 +7,7 @@ sys.path.insert(0,str(ROOT/"scripts"))
 sys.path.insert(0,str(ROOT))
 
 from archive_format import classify_archive_file, eligible_for_current_engine
+from pull_openvlf_date import verify_mat_metadata
 
 class ArchiveFormatTests(unittest.TestCase):
     def test_type_a_is_narrowband_amplitude(self):
@@ -20,6 +21,22 @@ class ArchiveFormatTests(unittest.TestCase):
     def test_unknown_suffix_rejected(self):
         with self.assertRaises(ValueError):
             classify_archive_file("unknown.mat")
+
+class MatMetadataTests(unittest.TestCase):
+    def test_accepts_verified_1hz_amplitude(self):
+        self.assertEqual(verify_mat_metadata({"fs":1.0,"is_amp":1,"is_broadband":0},"fixture.mat"),1.0)
+    def test_rejects_missing_sample_rate(self):
+        with self.assertRaisesRegex(ValueError,"does not expose"):
+            verify_mat_metadata({"is_amp":1},"fixture.mat")
+    def test_rejects_wrong_sample_rate(self):
+        with self.assertRaisesRegex(ValueError,"requires exactly 1 Hz"):
+            verify_mat_metadata({"fs":10.0,"is_amp":1},"fixture.mat")
+    def test_rejects_phase(self):
+        with self.assertRaisesRegex(ValueError,"does not confirm amplitude"):
+            verify_mat_metadata({"fs":1.0,"is_amp":0},"fixture.mat")
+    def test_rejects_broadband(self):
+        with self.assertRaisesRegex(ValueError,"broadband"):
+            verify_mat_metadata({"fs":1.0,"is_amp":1,"is_broadband":1},"fixture.mat")
 
 if __name__=="__main__":
     unittest.main()
