@@ -90,7 +90,7 @@ def process(obj: dict, out_dir: Path, observation_date: str) -> dict:
       "provider":"CRAAM Open VLF public S3 bucket","bucket":BUCKET,"region":REGION,
       "object_key":key,"object_etag":obj["etag"],"object_size_bytes":obj["size_bytes"],
       "last_modified_utc":obj["last_modified"],"downloaded_sha256":hashlib.sha256(payload).hexdigest(),
-      "observation_date_utc":observation_date,"archive_station_folder":key.split("/")[3] if len(key.split("/"))>3 else None,
+      "observation_date_utc":observation_date,"archive_station_folder":key.split("/")[4] if len(key.split("/"))>4 else None,
       "transmitter":re.search(r"([A-Z]{3})_\d{3}A\.mat$",name,re.I).group(1).upper() if re.search(r"([A-Z]{3})_\d{3}A\.mat$",name,re.I) else None,
       "archive_type":variant,"sample_rate_hz":1.0,
       "mat_metadata":metadata
@@ -140,7 +140,7 @@ def main():
             if not eligible_for_current_engine(name,"narrowband"): continue
         except ValueError: continue
         parts=o["key"].split("/")
-        station=parts[3] if len(parts)>3 else ""
+        station=parts[4] if len(parts)>4 else ""
         tx=re.search(r"([A-Z]{3})_\d{3}A\.mat$",name,re.I)
         tx=tx.group(1).upper() if tx else ""
         if a.station_folder and station.upper()!=a.station_folder.upper(): continue
