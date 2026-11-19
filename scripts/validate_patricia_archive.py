@@ -16,6 +16,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from vlf_json_exporter import load_amplitude_array, normalize_and_filter, build_export
+from archive_format import eligible_for_current_engine
 
 BUCKET_HOST = "craam-files-bucket.s3.sa-east-1.amazonaws.com"
 OBJECT_KEY = "2015/10/22/narrowband/FE/FE151022000500NAA_008A.mat"
@@ -28,6 +29,9 @@ def main():
     parser.add_argument("--output-dir", type=Path, default=Path("data/patricia-validation"))
     args = parser.parse_args()
     args.output_dir.mkdir(parents=True, exist_ok=True)
+
+    if not eligible_for_current_engine(Path(OBJECT_KEY).name, "narrowband"):
+        raise RuntimeError("Refusing to process a non-type-A or non-narrowband file with the amplitude engine.")
 
     url = f"https://{BUCKET_HOST}/{OBJECT_KEY}"
     request = urllib.request.Request(url, headers={"User-Agent": "vlf-global-monitor/1.0"})
