@@ -2,6 +2,12 @@ name: Validate Patricia NAA archive reference
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/validate_patricia_archive.py"
+      - "vlf_json_exporter.py"
+      - ".github/workflows/validate-patricia-archive.yml"
 
 permissions:
   contents: read
