@@ -10,6 +10,10 @@ import json
 import tempfile
 import urllib.request
 from pathlib import Path
+import sys
+
+# Make the repository root importable when this script is run from scripts/.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from vlf_json_exporter import load_amplitude_array, normalize_and_filter, build_export
 
