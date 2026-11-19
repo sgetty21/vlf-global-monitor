@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-VLF Spectral State Engine JSON exporter
+VLF Spectral Metrics JSON exporter
 ---------------------------------------
 Processes a 1 Hz amplitude-only MATLAB (.mat) recording and exports the
-canonical full-record and hourly metrics for the vlf-global-monitor dashboard.
+canonical full-record and hourly measurements for the vlf-global-monitor dashboard. Human review indicators are not calculated here.
 
 Requirements:
     pip install numpy scipy
@@ -132,17 +132,6 @@ def calculate_metrics(values: np.ndarray) -> dict:
     }
 
 
-def classify_state(tau: int, coherence: float) -> str:
-    """Apply the frozen operational state rules in priority order."""
-    if tau > 600:
-        return "A"
-    if tau > 250 and coherence >= 0.075:
-        return "B"
-    if tau > 100:
-        return "C"
-    return "D"
-
-
 def build_export(signal: np.ndarray, filtered: np.ndarray, filename: str) -> dict:
     full_metrics = calculate_metrics(filtered)
 
@@ -159,7 +148,6 @@ def build_export(signal: np.ndarray, filtered: np.ndarray, filename: str) -> dic
             "tau": metrics["tau"],
             "A": metrics["A"],
             "T": metrics["T"],
-            "state": classify_state(metrics["tau"], metrics["T"]),
         })
 
     peak = None
@@ -178,7 +166,6 @@ def build_export(signal: np.ndarray, filtered: np.ndarray, filename: str) -> dic
             "A": full_metrics["A"],
             "T": full_metrics["T"],
             "tau": full_metrics["tau"],
-            "state": classify_state(full_metrics["tau"], full_metrics["T"]),
             "filter": {
                 "type": "Butterworth bandpass",
                 "order": FILTER_ORDER,
@@ -195,7 +182,7 @@ def build_export(signal: np.ndarray, filtered: np.ndarray, filename: str) -> dic
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Export canonical VLF spectral-state metrics from a 1 Hz MAT file."
+        description="Export canonical VLF spectral measurements from a 1 Hz MAT file."
     )
     parser.add_argument("input", type=Path, help="Input MATLAB .mat file")
     parser.add_argument(
