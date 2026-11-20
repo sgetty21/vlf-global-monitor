@@ -144,6 +144,45 @@ async function fetchWaveform(path){
  const stream=response.body.pipeThrough(new DecompressionStream('gzip'));
  return JSON.parse(await new Response(stream).text());
 }
+
+function drawHistoricalRegimeViews(rows){
+ const refs=[
+  {name:'Kelud',A:.55,T:.042,tau:976,state:'A'},
+  {name:'Virginia',A:.49,T:.038,tau:682,state:'A'},
+  {name:'Solar',A:.38,T:.021,tau:627,state:'A'},
+  {name:'SSW',A:.21,T:.088,tau:422,state:'B'},
+  {name:'Pam',A:.18,T:.091,tau:327,state:'B'},
+  {name:'Patricia',A:.19,T:.115,tau:321,state:'B'},
+  {name:'Sandy',A:.15,T:.076,tau:214,state:'B/C'},
+  {name:'Igor',A:.14,T:.062,tau:188,state:'C'},
+  {name:'Quiet',A:.04,T:.004,tau:12,state:'D'}
+ ];
+ const stateColor=s=>s==='A'?'#73d6a0':s==='B'?'#f4bd61':s==='C'?'#55c5e8':s==='D'?'#9aabc0':'#b7a1f7';
+ const W=900,H=330,L=68,R=28,TOP=24,BOT=58,iw=W-L-R,ih=H-TOP-BOT;
+ const maxA=.6,maxT=.13,x=v=>L+(Number(v)/maxA)*iw,y=v=>TOP+ih-(Number(v)/maxT)*ih;
+ let scatter='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Regime separation: nine reference events and current batch hourly observations, coherence T against energy A">';
+ for(let j=0;j<=6;j++){const a=maxA*j/6,xx=x(a);scatter+='<line x1="'+xx+'" x2="'+xx+'" y1="'+TOP+'" y2="'+(TOP+ih)+'" stroke="#26364b"/><text x="'+xx+'" y="'+(H-34)+'" text-anchor="middle" fill="#9aabc0" font-size="11">'+a.toFixed(1)+'</text>'}
+ for(let j=0;j<=5;j++){const t=maxT*j/5,yy=y(t);scatter+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+yy+'" y2="'+yy+'" stroke="#26364b"/><text x="'+(L-10)+'" y="'+(yy+4)+'" text-anchor="end" fill="#9aabc0" font-size="11">'+t.toFixed(3)+'</text>'}
+ scatter+='<text x="'+(L+iw/2)+'" y="'+(H-8)+'" text-anchor="middle" fill="#c5d3e3" font-size="12">Energy A · hourly RMS</text><text transform="translate(17 '+(TOP+ih/2)+') rotate(-90)" text-anchor="middle" fill="#c5d3e3" font-size="12">Coherence T · PSD fraction</text>';
+ refs.forEach(r=>{scatter+='<circle cx="'+x(r.A)+'" cy="'+y(r.T)+'" r="6" fill="'+stateColor(r.state)+'" stroke="#101a29" stroke-width="1.5"><title>'+r.name+' · State '+r.state+' · A '+r.A+' · T '+r.T+' · τ '+r.tau+'</title></circle>'});
+ rows.forEach(r=>{if(Number.isFinite(Number(r.A))&&Number.isFinite(Number(r.T)))scatter+='<circle cx="'+x(r.A)+'" cy="'+y(r.T)+'" r="7" fill="none" stroke="#fff" stroke-width="2.2"><title>Current batch · '+String(r.hour).padStart(2,'0')+':00 UTC · A '+r.A+' · T '+r.T+' · τ '+r.tau+'</title></circle>'});
+ scatter+='</svg>';
+ const legend='<div class="legend"><span><i class="dot" style="background:#73d6a0"></i>Reference A</span><span><i class="dot" style="background:#f4bd61"></i>Reference B</span><span><i class="dot" style="background:#55c5e8"></i>Reference C</span><span><i class="dot" style="background:#9aabc0"></i>Reference D</span><span>◯ Current batch hours</span></div>';
+ const tauMax=Math.max(100,...rows.map(r=>Number(r.tau)||0))*1.15,tMax=.13;
+ const tx=h=>L+(Number(h)/23)*iw,ty=v=>TOP+ih-(Number(v)/tauMax)*ih,cy=v=>TOP+ih-(Number(v)/tMax)*ih;
+ let timeline='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="24-hour timeline overlaying persistence tau and coherence T">';
+ for(let j=0;j<=4;j++){const yy=TOP+ih-j*ih/4;timeline+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+yy+'" y2="'+yy+'" stroke="#26364b"/><text x="'+(L-10)+'" y="'+(yy+4)+'" text-anchor="end" fill="#55c5e8" font-size="10">'+(tauMax*j/4).toFixed(0)+'</text><text x="'+(W-R+8)+'" y="'+(yy+4)+'" fill="#f4bd61" font-size="10">'+(tMax*j/4).toFixed(3)+'</text>'}
+ for(let h=0;h<24;h+=3)timeline+='<text x="'+tx(h)+'" y="'+(H-34)+'" text-anchor="middle" fill="#9aabc0" font-size="11">'+String(h).padStart(2,'0')+'</text>';
+ const tauRows=rows.filter(r=>Number.isFinite(Number(r.tau))),tRows=rows.filter(r=>Number.isFinite(Number(r.T)));
+ timeline+='<path d="'+tauRows.map((r,i)=>(i?'L':'M')+tx(r.hour)+','+ty(r.tau)).join(' ')+'" fill="none" stroke="#55c5e8" stroke-width="2.8" stroke-linejoin="round"/>';
+ timeline+='<path d="'+tRows.map((r,i)=>(i?'L':'M')+tx(r.hour)+','+cy(r.T)).join(' ')+'" fill="none" stroke="#f4bd61" stroke-width="2.8" stroke-linejoin="round"/>';
+ tauRows.forEach(r=>{timeline+='<circle cx="'+tx(r.hour)+'" cy="'+ty(r.tau)+'" r="3.8" fill="#55c5e8"><title>'+r.hour+':00 UTC · persistence τ '+r.tau+'</title></circle>'});
+ tRows.forEach(r=>{timeline+='<circle cx="'+tx(r.hour)+'" cy="'+cy(r.T)+'" r="3.8" fill="#f4bd61"><title>'+r.hour+':00 UTC · coherence T '+r.T+'</title></circle>'});
+ timeline+='<text x="'+(L+iw/2)+'" y="'+(H-8)+'" text-anchor="middle" fill="#c5d3e3" font-size="12">Hour of day · UTC (missing/incomplete hours remain blank)</text></svg>';
+ return '<div class="panel"><h2>Regime separation</h2><p class="small muted">Coherence T against energy A. Filled dots are the nine historical reference events; white rings are this recording’s complete hourly observations. Reference points are benchmarks, not a fitted classifier.</p>'+legend+'<div class="chart-wrap">'+scatter+'</div><p class="small muted">Reference set: Kelud, Virginia, Solar, SSW, Pam, Patricia, Sandy, Igor and Quiet. Sandy retains its original B/C boundary label.</p></div>'+
+ '<div class="panel"><h2>24-hour regime timeline</h2><p class="small muted">Persistence τ and coherence T overlaid against separate, explicitly labeled vertical scales. Only complete hourly windows are plotted.</p><div class="legend"><span><i class="dot" style="background:#55c5e8"></i>Persistence τ · left axis</span><span><i class="dot" style="background:#f4bd61"></i>Coherence T · right axis</span></div><div class="chart-wrap">'+timeline+'</div></div>';
+}
+
 async function browseHistoricalDate(){
  const date=$('historicalDate').value;
  if(!date){$('historicalStatus').textContent='Choose a date first.';return}
@@ -172,7 +211,7 @@ async function browseHistoricalDate(){
    const wave=await fetchWaveform(waveformPath),raw=wave.raw_amplitude||[],filtered=wave.filtered_normalized||[];
    const chart=(arr,label,color)=>{if(!arr.length)return '<p class="muted small">Waveform unavailable.</p>';let max=1e-12;for(const v of arr){const av=Math.abs(Number(v));if(av>max)max=av;}const n=Math.min(1800,arr.length),step=arr.length/n;let pts=[];for(let k=0;k<n;k++){const j=Math.min(arr.length-1,Math.floor(k*step));pts.push((k?'L':'M')+(k/(n-1)*880+10)+','+(90-Number(arr[j])/max*78))}return '<div class="trend-heading"><strong>'+label+'</strong><span class="muted small">'+arr.length.toLocaleString()+' samples · 1 Hz · display decimated to '+n.toLocaleString()+' points</span></div><svg viewBox="0 0 900 110" role="img" aria-label="'+label+' waveform"><line x1="10" x2="890" y1="90" y2="90" stroke="#34475e"/><path d="'+pts.join(' ')+'" fill="none" stroke="'+color+'" stroke-width="1.2" vector-effect="non-scaling-stroke"/></svg>'};
    const v=$('historicalRecordView');
-   v.innerHTML='<div class="metrics">'+metric('A · amplitude energy',fmt(rec.summary?.A,4),'Whole-record RMS')+metric('T · spectral coherence',fmt(rec.summary?.T,4),'Welch power fraction')+metric('τ · persistence',fmt(rec.summary?.tau,0),'Whole-record count')+metric('Complete hours',esc(rec.summary?.complete_hours),'3600 samples per hour')+'</div><div class="panel"><h2>1 Hz waveform inspection</h2><p class="small muted">Original amplitude and normalized, filtered signal. Plotted samples are decimated for display only; downloaded JSON retains every sample.</p>'+chart(raw,'Raw amplitude','#73d6a0')+chart(filtered,'Normalized, filtered signal','#55c5e8')+'</div><div class="panel"><h2>Hourly measurements · UTC</h2><div class="table-wrap"><table><thead><tr><th>Hour</th><th>A</th><th>T</th><th>τ</th></tr></thead><tbody>'+(rec.hourly||[]).map(r=>'<tr><td>'+String(r.hour).padStart(2,'0')+':00</td><td>'+fmt(r.A,4)+'</td><td>'+fmt(r.T,4)+'</td><td>'+esc(r.tau)+'</td></tr>').join('')+'</tbody></table></div><p class="small muted">Source: '+esc(rec.source?.object_key)+' · ETag '+esc(rec.source?.object_etag)+' · SHA-256 '+esc(rec.source?.downloaded_sha256)+'</p><a href="'+base+'/'+folder+meta.record+'" target="_blank" rel="noopener">Open complete recording JSON ↗</a></div>';
+   v.innerHTML='<div class="metrics">'+metric('A · amplitude energy',fmt(rec.summary?.A,4),'Whole-record RMS')+metric('T · spectral coherence',fmt(rec.summary?.T,4),'Welch power fraction')+metric('τ · persistence',fmt(rec.summary?.tau,0),'Whole-record count')+metric('Complete hours',esc(rec.summary?.complete_hours),'3600 samples per hour')+'</div><div class="panel"><h2>1 Hz waveform inspection</h2><p class="small muted">Original amplitude and normalized, filtered signal. Plotted samples are decimated for display only; downloaded JSON retains every sample.</p>'+chart(raw,'Raw amplitude','#73d6a0')+chart(filtered,'Normalized, filtered signal','#55c5e8')+'</div>'+drawHistoricalRegimeViews(rec.hourly||[])+'<div class="panel"><h2>Hourly measurements · UTC</h2><div class="table-wrap"><table><thead><tr><th>Hour</th><th>A</th><th>T</th><th>τ</th></tr></thead><tbody>'+(rec.hourly||[]).map(r=>'<tr><td>'+String(r.hour).padStart(2,'0')+':00</td><td>'+fmt(r.A,4)+'</td><td>'+fmt(r.T,4)+'</td><td>'+esc(r.tau)+'</td></tr>').join('')+'</tbody></table></div><p class="small muted">Source: '+esc(rec.source?.object_key)+' · ETag '+esc(rec.source?.object_etag)+' · SHA-256 '+esc(rec.source?.downloaded_sha256)+'</p><a href="'+base+'/'+folder+meta.record+'" target="_blank" rel="noopener">Open complete recording JSON ↗</a></div>';
   };
   $('historicalRecord').addEventListener('change',e=>choose(e.target.value));await choose(0);
  }catch(e){status.textContent='Historical lookup failed: '+e.message}
