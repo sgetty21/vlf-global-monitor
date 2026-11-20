@@ -93,14 +93,20 @@ function render(record,path){
  '<div class="panel" style="margin-top:18px"><h2>Interactive hourly signal analysis</h2><p class="small muted">Three synchronized hourly trends, an A–T scatter view and an hour-by-hour persistence intensity strip. These are hourly summaries of the published record, not a continuously streaming raw 1 Hz waveform.</p>'+drawChart(rows)+'</div><div class="two" style="margin-top:18px"><div></div><div>'+
  '<h2>Human interpretation</h2><div class="annotation">'+(a?'<h3><span class="tag">Human indicator '+esc(a.indicator)+'</span></h3><p class="small">Reviewer: '+esc(a.reviewer)+'</p><p class="small">Reviewed: '+esc(niceDate(a.reviewed_at_utc))+'</p><p class="small">'+esc(a.notes||'No notes supplied.')+'</p><p class="small muted">Provenance: '+esc(a.provenance)+'</p>':'<h3><span class="tag unassigned">Unassigned</span></h3><p class="small muted">No complete, valid human annotation is attached to this recording. The dashboard does not derive an indicator from A, T or τ.</p>')+'</div>'+
  '<div class="small muted" style="margin-top:15px">
- <p><strong>Interpretive key from the original D-Region VLF State-Space Methods document</strong></p>
+ <p><strong>Rule-based state classification · original research rule</strong></p>
+ <div class="table-wrap"><table><thead><tr><th>Condition (per complete hour)</th><th>Assigned state</th></tr></thead><tbody>
+  <tr><td>τ &gt; 600 s/hr</td><td><strong>State A</strong></td></tr>
+  <tr><td>τ &gt; 250 s/hr and T elevated</td><td><strong>State B</strong></td></tr>
+  <tr><td>τ &gt; 100 s/hr</td><td><strong>State C</strong></td></tr>
+  <tr><td>Otherwise</td><td><strong>State D</strong></td></tr>
+ </tbody></table></div>
+ <p>This is shown as the original rule reference, not an active dashboard classifier. The original wording does not numerically define “T elevated”; that threshold must be specified and scientifically approved before State B can be implemented consistently. Conditions are evaluated top-to-bottom because the τ ranges overlap. The published human annotation remains separate and is never overwritten by this rule.</p>
+ <p><strong>CRAAM archive measurement types (separate from the states above)</strong></p>
  <ul style="margin:6px 0 8px;padding-left:20px">
-  <li><strong>A —</strong> Narrowband (low-frequency) amplitude.</li>
-  <li><strong>B —</strong> Narrowband (low-frequency) phase.</li>
-  <li><strong>C —</strong> Broadband (high-frequency) amplitude.</li>
-  <li><strong>D —</strong> Broadband (high-frequency) phase.</li>
+  <li><strong>A —</strong> Narrowband amplitude.</li><li><strong>B —</strong> Narrowband phase.</li>
+  <li><strong>C —</strong> Broadband amplitude.</li><li><strong>D —</strong> Broadband phase.</li>
  </ul>
- <p>These letters are CRAAM archive measurement-type codes, not human-assigned propagation states. The current signal engine accepts type-A narrowband amplitude only. B, C and D are different measured products and are not reclassified into A. Any separate human interpretation of propagation conditions must be recorded independently; the engine does not assign it from A, T or τ.</p>
+ <p>The current engine processes type-A narrowband amplitude only. Archive type codes identify measured products; State A–D are rule labels from the research method. They are not interchangeable.</p>
 </div></div></div></section>'+
  (warn?'<section class="panel warning"><strong>Scientific validation note</strong><p class="small">'+esc(warn[0])+' The record retains this discrepancy; the dashboard does not alter or reconcile the measurements.</p></section>':'')+
  '<section class="panel"><h2>Hourly measurements · UTC</h2><p class="small muted">Only complete 3,600-sample windows are listed. The trailing partial window is not padded.</p><div class="table-wrap"><table><thead><tr><th>Hour</th><th>A · RMS</th><th>T · PSD fraction</th><th>τ · count</th></tr></thead><tbody>'+
@@ -149,18 +155,22 @@ async function browseHistoricalDate(){
   const runs=(idx.runs||[]).filter(x=>x.date_utc===date).sort((a,b)=>b.run_id-a.run_id||b.run_attempt-a.run_attempt);
   if(!runs.length){status.textContent='No published retrieval exists for '+date+'. Use the GitHub Actions link above to retrieve it.';return}
   const run=runs[0];
-  // run.path is the published day-index path; derive its directory explicitly.
+  // index.json is a file, not a directory. Resolve its parent once, then
+  // append each recording basename to that parent.
   const runPath=String(run.path||'').replace(/^\\/+|\\/+$/g,'');
-  const runParts=runPath.split('/').filter(Boolean);
-  if(runParts.length<2||runParts[runParts.length-1]!=='index.json')throw Error('Invalid historical run index path: '+runPath);
-  const folder='historical/'+runParts.slice(0,-1).join('/')+'/';
-  const day=await json('historical/'+runPath);
+  const indexPath=runPath.startsWith('historical/')?runPath:'historical/'+runPath;
+  if(!indexPath.endsWith('/index.json'))throw Error('Invalid historical run index path: '+indexPath);
+  const folder=indexPath.slice(0,indexPath.lastIndexOf('/')+1);
+  const day=await json(indexPath);
   const records=day.records||[];
   status.textContent='Found '+records.length+' processed recording(s) for '+date+'. Select one to inspect its waveform and hourly metrics.';
   out.innerHTML='<div class="toolbar" style="margin-top:12px"><label class="small" for="historicalRecord">Recording / path</label><select id="historicalRecord">'+records.map((r,i)=>'<option value="'+i+'">'+esc(r.file)+' · '+esc(r.complete_hours)+' complete h</option>').join('')+'</select><span class="small muted">Run '+esc(run.run_id)+' · attempt '+esc(run.run_attempt)+'</span></div><div id="historicalRecordView"></div>';
   const choose=async i=>{
-   const meta=records[Number(i)],rec=await json(folder+meta.record);
-   const wave=await fetchWaveform(folder+meta.waveform),raw=wave.raw_amplitude||[],filtered=wave.filtered_normalized||[];
+   const meta=records[Number(i)];
+   const recordPath=folder+String(meta.record||'').split('/').pop();
+   const waveformPath=folder+String(meta.waveform||'').split('/').pop();
+   const rec=await json(recordPath);
+   const wave=await fetchWaveform(waveformPath),raw=wave.raw_amplitude||[],filtered=wave.filtered_normalized||[];
    const chart=(arr,label,color)=>{if(!arr.length)return '<p class="muted small">Waveform unavailable.</p>';let max=1e-12;for(const v of arr){const av=Math.abs(Number(v));if(av>max)max=av;}const n=Math.min(1800,arr.length),step=arr.length/n;let pts=[];for(let k=0;k<n;k++){const j=Math.min(arr.length-1,Math.floor(k*step));pts.push((k?'L':'M')+(k/(n-1)*880+10)+','+(90-Number(arr[j])/max*78))}return '<div class="trend-heading"><strong>'+label+'</strong><span class="muted small">'+arr.length.toLocaleString()+' samples · 1 Hz · display decimated to '+n.toLocaleString()+' points</span></div><svg viewBox="0 0 900 110" role="img" aria-label="'+label+' waveform"><line x1="10" x2="890" y1="90" y2="90" stroke="#34475e"/><path d="'+pts.join(' ')+'" fill="none" stroke="'+color+'" stroke-width="1.2" vector-effect="non-scaling-stroke"/></svg>'};
    const v=$('historicalRecordView');
    v.innerHTML='<div class="metrics">'+metric('A · amplitude energy',fmt(rec.summary?.A,4),'Whole-record RMS')+metric('T · spectral coherence',fmt(rec.summary?.T,4),'Welch power fraction')+metric('τ · persistence',fmt(rec.summary?.tau,0),'Whole-record count')+metric('Complete hours',esc(rec.summary?.complete_hours),'3600 samples per hour')+'</div><div class="panel"><h2>1 Hz waveform inspection</h2><p class="small muted">Original amplitude and normalized, filtered signal. Plotted samples are decimated for display only; downloaded JSON retains every sample.</p>'+chart(raw,'Raw amplitude','#73d6a0')+chart(filtered,'Normalized, filtered signal','#55c5e8')+'</div><div class="panel"><h2>Hourly measurements · UTC</h2><div class="table-wrap"><table><thead><tr><th>Hour</th><th>A</th><th>T</th><th>τ</th></tr></thead><tbody>'+(rec.hourly||[]).map(r=>'<tr><td>'+String(r.hour).padStart(2,'0')+':00</td><td>'+fmt(r.A,4)+'</td><td>'+fmt(r.T,4)+'</td><td>'+esc(r.tau)+'</td></tr>').join('')+'</tbody></table></div><p class="small muted">Source: '+esc(rec.source?.object_key)+' · ETag '+esc(rec.source?.object_etag)+' · SHA-256 '+esc(rec.source?.downloaded_sha256)+'</p><a href="'+base+'/'+folder+meta.record+'" target="_blank" rel="noopener">Open complete recording JSON ↗</a></div>';
