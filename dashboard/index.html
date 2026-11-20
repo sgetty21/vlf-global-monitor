@@ -100,7 +100,7 @@ function render(record,path){
   <li><strong>C —</strong> Reduced values across the metrics; described as weak or transitional coupling.</li>
   <li><strong>D —</strong> Baseline noise-floor regime.</li>
  </ul>
- <p>These are qualitative descriptions from the original research framework, shown as a reference for human interpretation. The dashboard does not assign A/B/C/D from measured A, T or τ, and these descriptions are not a validated automatic classifier.</p>
+ <p>These letters are CRAAM archive measurement-type codes, not human-assigned propagation states. The current signal engine accepts type-A narrowband amplitude only. B, C and D are different measured products and are not reclassified into A. Any separate human interpretation of propagation conditions must be recorded independently; the engine does not assign it from A, T or τ.</p>
 </div></div></div></section>'+
  (warn?'<section class="panel warning"><strong>Scientific validation note</strong><p class="small">'+esc(warn[0])+' The record retains this discrepancy; the dashboard does not alter or reconcile the measurements.</p></section>':'')+
  '<section class="panel"><h2>Hourly measurements · UTC</h2><p class="small muted">Only complete 3,600-sample windows are listed. The trailing partial window is not padded.</p><div class="table-wrap"><table><thead><tr><th>Hour</th><th>A · RMS</th><th>T · PSD fraction</th><th>τ · count</th></tr></thead><tbody>'+
@@ -148,8 +148,13 @@ async function browseHistoricalDate(){
   const idx=await json('historical/index.json');
   const runs=(idx.runs||[]).filter(x=>x.date_utc===date).sort((a,b)=>b.run_id-a.run_id||b.run_attempt-a.run_attempt);
   if(!runs.length){status.textContent='No published retrieval exists for '+date+'. Use the GitHub Actions link above to retrieve it.';return}
-  const run=runs[0],folder='historical/'+run.path.slice(0,run.path.lastIndexOf('/')+1);
-  const day=await json('historical/'+run.path);
+  const run=runs[0];
+  // run.path is the published day-index path; derive its directory explicitly.
+  const runPath=String(run.path||'').replace(/^\\/+|\\/+$/g,'');
+  const runParts=runPath.split('/').filter(Boolean);
+  if(runParts.length<2||runParts[runParts.length-1]!=='index.json')throw Error('Invalid historical run index path: '+runPath);
+  const folder='historical/'+runParts.slice(0,-1).join('/')+'/';
+  const day=await json('historical/'+runPath);
   const records=day.records||[];
   status.textContent='Found '+records.length+' processed recording(s) for '+date+'. Select one to inspect its waveform and hourly metrics.';
   out.innerHTML='<div class="toolbar" style="margin-top:12px"><label class="small" for="historicalRecord">Recording / path</label><select id="historicalRecord">'+records.map((r,i)=>'<option value="'+i+'">'+esc(r.file)+' · '+esc(r.complete_hours)+' complete h</option>').join('')+'</select><span class="small muted">Run '+esc(run.run_id)+' · attempt '+esc(run.run_attempt)+'</span></div><div id="historicalRecordView"></div>';
