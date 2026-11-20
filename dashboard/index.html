@@ -157,7 +157,7 @@ async function browseHistoricalDate(){
   const run=runs[0];
   // index.json is a file, not a directory. Resolve its parent once, then
   // append each recording basename to that parent.
-  const runPath=String(run.path||'').replace(/^\\/+|\\/+$/g,'');
+  const runPath=String(run.path||'').split('/').filter(Boolean).join('/');
   const indexPath=runPath.startsWith('historical/')?runPath:'historical/'+runPath;
   if(!indexPath.endsWith('/index.json'))throw Error('Invalid historical run index path: '+indexPath);
   const folder=indexPath.slice(0,indexPath.lastIndexOf('/')+1);
