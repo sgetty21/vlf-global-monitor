@@ -92,7 +92,7 @@ function render(record,path){
  '<section class="panel"><div class="top"><div><div class="eyebrow">Selected archive observation</div><h2 style="margin:5px 0">'+esc((src.object_key||'').split('/').pop())+'</h2><div class="muted small">'+esc(src.observation_date_utc)+' · Transmitter '+esc(src.transmitter)+' · Archive folder '+esc(src.archive_station_folder)+' · variant '+esc(src.archive_variant)+'</div></div><div class="toolbar"><a href="'+esc(record.workflow_url)+'" target="_blank" rel="noopener">Open validation run ↗</a><a href="'+esc(recordUrl)+'" target="_blank" rel="noopener">View record JSON ↗</a></div></div>'+
  '<div class="panel" style="margin-top:18px"><h2>Interactive hourly signal analysis</h2><p class="small muted">Three synchronized hourly trends, an A–T scatter view and an hour-by-hour persistence intensity strip. These are hourly summaries of the published record, not a continuously streaming raw 1 Hz waveform.</p>'+drawChart(rows)+'</div><div class="two" style="margin-top:18px"><div></div><div>'+
  '<h2>Human interpretation</h2><div class="annotation">'+(a?'<h3><span class="tag">Human indicator '+esc(a.indicator)+'</span></h3><p class="small">Reviewer: '+esc(a.reviewer)+'</p><p class="small">Reviewed: '+esc(niceDate(a.reviewed_at_utc))+'</p><p class="small">'+esc(a.notes||'No notes supplied.')+'</p><p class="small muted">Provenance: '+esc(a.provenance)+'</p>':'<h3><span class="tag unassigned">Unassigned</span></h3><p class="small muted">No complete, valid human annotation is attached to this recording. The dashboard does not derive an indicator from A, T or τ.</p>')+'</div>'+
- '<div class="small muted" style="margin-top:15px">\n <p><strong>Rule-based state classification · original research rule</strong></p>
+ `<div class="small muted" style="margin-top:15px">\n <p><strong>Rule-based state classification · original research rule</strong></p>
  <div class="table-wrap"><table><thead><tr><th>Condition (per complete hour)</th><th>Assigned state</th></tr></thead><tbody>
   <tr><td>τ &gt; 600 s/hr</td><td><strong>State A</strong></td></tr>
   <tr><td>τ &gt; 250 s/hr and T elevated</td><td><strong>State B</strong></td></tr>
@@ -106,7 +106,7 @@ function render(record,path){
   <li><strong>C —</strong> Broadband amplitude.</li><li><strong>D —</strong> Broadband phase.</li>
  </ul>
  <p>The current engine processes type-A narrowband amplitude only. Archive type codes identify measured products; State A–D are rule labels from the research method. They are not interchangeable.</p>
-</div></div></div></section>'+
+</div></div></div></section>`+
  (warn?'<section class="panel warning"><strong>Scientific validation note</strong><p class="small">'+esc(warn[0])+' The record retains this discrepancy; the dashboard does not alter or reconcile the measurements.</p></section>':'')+
  '<section class="panel"><h2>Hourly measurements · UTC</h2><p class="small muted">Only complete 3,600-sample windows are listed. The trailing partial window is not padded.</p><div class="table-wrap"><table><thead><tr><th>Hour</th><th>A · RMS</th><th>T · PSD fraction</th><th>τ · count</th></tr></thead><tbody>'+
  (rows.length?rows.map(r=>'<tr><td>'+String(r.hour).padStart(2,'0')+':00</td><td>'+fmt(r.A,4)+'</td><td>'+fmt(r.T,4)+'</td><td>'+esc(r.tau)+'</td></tr>').join(''):'<tr><td colspan="4">No hourly rows published.</td></tr>')+
